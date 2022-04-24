@@ -1,0 +1,3 @@
+hfloat x = 0.0; 
+x = x + 1.0; 
+hprint [x];

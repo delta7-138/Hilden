@@ -1,6 +1,6 @@
-#include "op_parser.h"
-#include "lexer.h"
-#include "token.h"
+#include "parse/op_parser.h"
+#include "lex/lexer.h"
+#include "token/token.h"
 #include <fstream>
 #include <iostream>
 

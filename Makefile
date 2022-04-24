@@ -1,8 +1,8 @@
-hilden : main.cpp op_parser.cpp lexer.cpp token.h
-	g++ main.cpp lexer.cpp op_parser.cpp token.h -o hilden
+build: main.cpp parse/op_parser.cpp lex/lexer.cpp token/token.h
+	g++ main.cpp lex/lexer.cpp parse/op_parser.cpp -o hilden
 
-hdebug: main.cpp op_parser.cpp lexer.cpp token.h
-	g++ main.cpp lexer.cpp op_parser.cpp token.h -o hilden -fsanitize=address -g	
+hdebug: main.cpp parse/op_parser.cpp lex/lexer.cpp token/token.h
+	g++ main.cpp lex/lexer.cpp parse/op_parser.cpp -o hilden -fsanitize=address -g	
 
 clean:
 	rm -f hilden

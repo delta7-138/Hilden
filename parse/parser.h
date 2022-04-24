@@ -1,8 +1,8 @@
 #ifndef __PARSE_H_
 #define __PARSE_H_
 
-#include "token.h"
-#include "lexer.h"
+#include "../token/token.h"
+#include "../lex/lexer.h"
 #include <stack>
 #include <queue>
 class ParseNumericNode{

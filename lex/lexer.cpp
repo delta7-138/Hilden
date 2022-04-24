@@ -1,5 +1,4 @@
 #include "lexer.h"
-#include "token.h"
 
 std::string Identifier;  //for storing identifier names 
 double NumVal; //for storing token number in case of special tokens

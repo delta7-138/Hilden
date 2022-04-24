@@ -5,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include "../token/token.h"
 /* We have the following token classes
     1. Separator(;)
     2. Keyword (Float)

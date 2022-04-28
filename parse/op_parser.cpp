@@ -1,6 +1,5 @@
 #include "op_parser.h"
-
-static std::vector<Environment>envList; 
+static std::stack<Environment>envList; 
 int curr_env_index = 0; 
 int get_precedence(std::string tokval){
 	if(tokval=="+" || tokval=="-"){
@@ -34,6 +33,27 @@ float get_ans(float lhs , std::string op , float rhs){
 	return -1.0; 
 }
 
+void create_environment(){
+	Environment newenv; 
+	newenv.level = envList.top().level + 1; 
+	envList.push(newenv); 
+}
+
+void exit_environment(){
+	envList.pop();
+}
+
+void init_variable(TokenType tok , std::string val){
+	if(envList.top().var_map.find(tok.token_val)==envList.top().var_map.end()){
+		perror("Variable already exists!"); 
+		exit(-1); 
+	}
+	Variable *newvar = new Variable(); 
+	newvar->name = tok.token_val; 
+	newvar->val = val; 
+	newvar->type = "float"; 
+	envList.top().var_map.insert(std::pair<std::string , Variable *>(tok.token_val , newvar)); 
+}
 
 //Uses Shunting Yard Algorithm
 float parse_binary(std::vector<TokenType>tList){
@@ -49,8 +69,11 @@ float parse_binary(std::vector<TokenType>tList){
 			if(token_number==tok_hfloat){
 				output_q.push_back(tmp);
 			}else if(token_number==tok_id){
-				Environment currenv = envList[curr_env_index];
-
+				Environment currenv = envList.top(); 
+				if(currenv.var_map.find(token_value)==currenv.var_map.end()){
+					perror("Variable not initialized!"); 
+					exit(-1); 
+				}
 				Variable *var = currenv.var_map.at(token_value); 
 				TokenType literal; 
 				literal.token_number = tok_hfloat; 
@@ -109,6 +132,9 @@ float parse_binary(std::vector<TokenType>tList){
 		}else if(tok.token_number == tok_operator){
 			float rhs = parse_stack.top();
 			parse_stack.pop();
+			if(parse_stack.empty()){
+				return rhs; 
+			}
 			float lhs = parse_stack.top();
 			parse_stack.pop();
 			float ans = get_ans(lhs , tok.token_val, rhs);
@@ -121,35 +147,29 @@ float parse_binary(std::vector<TokenType>tList){
 void parse_expression(std::vector<TokenType>tList){
 	Environment globalenv; 
 	globalenv.level = 0; 
-	envList.push_back(globalenv); 
+	envList.push(globalenv); 
 	int ctr = 0; 
 	while(ctr<tList.size()){
 		TokenType curtok = tList[ctr]; 
 		if(curtok.token_val=="hprint"){
 			ctr++;
 			TokenType nextok = tList[ctr]; 
-			
-			if(nextok.token_val=="["){
-				std::vector<TokenType>expr;
-				ctr++; 
-				while(nextok.token_val!="]"){
-					if(ctr==tList.size()){
-						perror("Syntax Error!");
-						exit(-1);
-					}
-					nextok = tList[ctr];
-					if(nextok.token_val!="]"){
-						expr.push_back(nextok);
-					}
-					ctr++; 
+			std::vector<TokenType>expr; 
+			while(true){
+				nextok = tList[ctr]; 
+				if(nextok.token_number == tok_sep){
+					break;
 				}
-				ctr++; 
-				float ans = parse_binary(expr); 
-				std::cout<<ans<<std::endl;
-			}else{
-				perror("Syntax Error!");
-				exit(-1);
+				expr.push_back(nextok); 
+				ctr++;
 			}
+			if(expr.size()==0){
+				std::cout<<std::endl;
+				return ;
+			}
+			float ans = parse_binary(expr); 
+			std::cout<<ans<<std::endl;
+			ctr++;
 		}else if(curtok.token_val=="hfloat"){
 			ctr++; 
 			TokenType nextok = tList[ctr];
@@ -167,6 +187,10 @@ void parse_expression(std::vector<TokenType>tList){
 					}
 					ctr++;
 				}
+				if(expr.size()==0){
+					perror("Syntax Error! nothing after '=' "); 
+					exit(-1);
+				}
 				float ans = parse_binary(expr); 
 				Variable *newvar = new Variable();  
 				std::ostringstream ss;
@@ -175,9 +199,7 @@ void parse_expression(std::vector<TokenType>tList){
 				newvar->val = val;
 				newvar->type = "float"; 
 				newvar->name = var_name; 
-				Environment currenv = envList[curr_env_index];
-				currenv.var_map.insert(std::pair<std::string , Variable*>(var_name , newvar));
-				envList[curr_env_index] = currenv; 
+				envList.top().var_map.insert(std::pair<std::string , Variable*>(var_name , newvar));
 				ctr++; 
 			}
 		}else if(curtok.token_number==tok_id){
@@ -198,9 +220,42 @@ void parse_expression(std::vector<TokenType>tList){
 				std::ostringstream ss;
 				ss << ans; 
 				std::string val(ss.str());
-				envList[curr_env_index].var_map[curtok.token_val]->val = val; 
+				envList.top().var_map[curtok.token_val]->val = val; 
 				ctr++;
 			}
+		}else if(curtok.token_number==tok_open_b){
+			//to be FIXED
+			// std::cout<<"in"<<std::endl;
+			std::stack<int>paran;
+			paran.push(1); 
+			bool flag_last = false; 
+			std::vector<TokenType>expr; 
+			create_environment(); 
+			while(true){
+				if(paran.empty()){
+					break;
+				}
+				TokenType nextok = tList[++ctr];
+				if(nextok.token_number==tok_open_b){
+					paran.push(1); 
+				}else if(nextok.token_number==tok_close_b){
+					if(!paran.empty()){
+						if(paran.size()==1){
+							flag_last = true;
+						}
+						paran.pop();
+					}
+				}
+				if(!flag_last){
+					expr.push_back(nextok);
+				}
+			}
+			parse_expression(expr); 
+			exit_environment(); 
+			ctr++; 
+		}else{
+			perror("Syntax error!"); 
+			exit(-1); 
 		}
 	}
 }

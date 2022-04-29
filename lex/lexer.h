@@ -18,13 +18,13 @@
     9. Operators (+ - * / =)
 */
 
-class TokenType{
+class TokenType {
     public: 
     int token_number; 
     std::string token_val; 
 
     void print(){
-        std::cout<<"<"<<token_number<<" : "<<token_val<<">"<<std::endl; 
+        std::cout << "<" << token_number <<" : " << token_val << ">"; 
     }
 }; 
 

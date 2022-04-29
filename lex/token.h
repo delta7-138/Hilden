@@ -5,7 +5,7 @@
 ; - separator token 
 */
 
-enum Token{
+enum Token {
     tok_sep = -1, 
     tok_open_p = -2, 
     tok_close_p = -3, 
@@ -19,4 +19,5 @@ enum Token{
     tok_open_b = -11, 
     tok_close_b = -12
 };
+
 #endif

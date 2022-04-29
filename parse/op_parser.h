@@ -14,13 +14,22 @@
 #define EQ_PREC 1
 #define ADD_PREC 2
 #define MUL_PREC 3
+
+enum AST_Node_Type {
+	n_binary = 0, // Default, binary statements
+	n_unary = 1, // Unary statements, return, break etc
+	n_ternary = 2, // Ternery statements, conditionals, ternery operator
+};
+
 class AST_Tree_Node
 {
 public:
 	TokenType* tok; 
 	TokenType* eval_tok;
+	int node_type;
 	std::vector<AST_Tree_Node *>childList;
  	AST_Tree_Node(TokenType tok);
+ 	AST_Tree_Node(TokenType tok, int node_type);
 	AST_Tree_Node();
 	int add_child(AST_Tree_Node* node);
 };

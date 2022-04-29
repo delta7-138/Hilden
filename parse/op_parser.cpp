@@ -15,18 +15,28 @@ int get_precedence(std::string tokval){
 AST_Tree_Node :: AST_Tree_Node(TokenType tok)
 {
 	this->tok = new TokenType(tok);
+	this->node_type = n_binary;
+}
+
+AST_Tree_Node :: AST_Tree_Node(TokenType tok, int node_type)
+{
+	this->tok = new TokenType(tok);
+	this->node_type = node_type;
 }
 
 int AST_Tree_Node :: add_child(AST_Tree_Node* node)
 {
 	this->childList.push_back(node);
+	return 0;
 }
 
 void print_ast(AST_Tree_Node* node, int depth=0){
+	std::cout << "[" << node->node_type << ":";
 	node->tok->print();
-	for(int i=0; i<node->childList.size(); i++){
-		for(int j=0;j<depth;j++){
-			std::cout<<"   ";
+	std::cout << "]" << std::endl;
+	for(int i=0; i < node->childList.size(); i++){
+		for(int j = 0; j < depth; j++){
+			std::cout<<"|_ ";
 		}
 		print_ast(node->childList[i], depth+1);
 	}
@@ -75,20 +85,24 @@ void init_variable(TokenType tok , std::string val){
 	envList.top().var_map.insert(std::pair<std::string , Variable *>(tok.token_val , newvar)); 
 }
 
-//Uses Shunting Yard Algorithm
-AST_Tree_Node* parse_binary(std::vector<TokenType>tList){
+/**
+ * Parses binary expressions. Takes token list tList of the binary expression
+ * Uses the Shunting Yard algorithm
+ * Returns a binary AST Node
+ */
+AST_Tree_Node* parse_binary(std::vector<TokenType> tList){
 	std::vector<TokenType>output_q; 
 	std::stack<TokenType>op_stack; 
 
 	int prev_tok_number = 1000;
-	for(int i = 0; i<tList.size(); i++){
+	for(int i = 0; i < tList.size(); i++){
 		TokenType tmp = tList[i]; 
 		int token_number = tmp.token_number; 
 		std::string token_value = tmp.token_val;
 		if(token_number==tok_hfloat || token_number==tok_id){
 			if(token_number==tok_hfloat){
 				output_q.push_back(tmp);
-			}else if(token_number==tok_id){
+			} else if(token_number==tok_id){
 				Environment currenv = envList.top(); 
 				if(currenv.var_map.find(token_value)==currenv.var_map.end()){
 					perror("Variable not initialized!"); 
@@ -100,7 +114,7 @@ AST_Tree_Node* parse_binary(std::vector<TokenType>tList){
 				literal.token_val = var->val; 
 				output_q.push_back(literal); 
 			}
-		}else if(token_number==tok_operator){
+		} else if(token_number == tok_operator){
 			while(!op_stack.empty()){
 				int prec_top = get_precedence(op_stack.top().token_val);
 				int prec_curr_tok = get_precedence(token_value); 
@@ -112,14 +126,15 @@ AST_Tree_Node* parse_binary(std::vector<TokenType>tList){
 				output_q.push_back(top);
 			}
 			op_stack.push(tmp); 
-		}else if(token_number==tok_open_p){
-			op_stack.push(tmp);
-		}else if(token_number==tok_close_p){
+		} else if(token_number == tok_open_p) op_stack.push(tmp);
+		else if(token_number == tok_close_p){
 			while(!op_stack.empty()){
-				if(op_stack.top().token_val=="("){
+
+				if(op_stack.top().token_val == "("){
 					op_stack.pop(); 
 					break; 
 				}
+
 				TokenType top = op_stack.top(); 
 				op_stack.pop(); 
 				output_q.push_back(top);
@@ -128,10 +143,10 @@ AST_Tree_Node* parse_binary(std::vector<TokenType>tList){
 		if((prev_tok_number==tok_hfloat || prev_tok_number==tok_id) && (token_number==tok_hfloat || token_number==tok_id)){
 			perror("Syntax Error!");
 			exit(0);
-		}else if(prev_tok_number==tok_operator && token_number==tok_operator){
+		} else if(prev_tok_number==tok_operator && token_number==tok_operator){
 			perror("Syntax Error!");
 			exit(0);
-		}else if(prev_tok_number==tok_open_p && token_number==tok_operator){
+		} else if(prev_tok_number==tok_open_p && token_number==tok_operator){
 			perror("Syntax Error!");
 			exit(0);
 		}
@@ -152,7 +167,7 @@ AST_Tree_Node* parse_binary(std::vector<TokenType>tList){
 			AST_Tree_Node* ast = new AST_Tree_Node(tok);
 			ast->eval_tok = new TokenType(tok);
 			parse_stack.push(ast);
-		}else if(tok.token_number == tok_operator){
+		} else if(tok.token_number == tok_operator){
 			AST_Tree_Node* rhs_Node = parse_stack.top();
 			parse_stack.pop();
 			if(parse_stack.empty()){
@@ -180,6 +195,20 @@ AST_Tree_Node* parse_binary(std::vector<TokenType>tList){
 	return ast;
 }
 
+/**
+ * Parses ternery expressions. Takes a token list tList of the ternery expression
+ * Returns a ternery AST node
+ */
+AST_Tree_Node* parse_ternary(std::vector<TokenType> tList) {
+	return nullptr;
+}
+
+/**
+ * Parses the entire code. Takes a token list tList of the entire code.
+ * Calls parse_unary, parse_binary or parse_ternary depending on the expression.
+ * Constructs the abstract syntax tree
+ * TODO: Return the AST instead of printing.
+ */
 void parse_expression(std::vector<TokenType>tList){
 	Environment globalenv; 
 	globalenv.level = 0; 
@@ -188,9 +217,9 @@ void parse_expression(std::vector<TokenType>tList){
 	tok.token_val  = "Start"; 
 	AST_Tree_Node* head = new AST_Tree_Node(tok);
 	int ctr = 0; 
-	while(ctr<tList.size()){
+	while(ctr < tList.size()){
 		TokenType curtok = tList[ctr]; 
-		if(curtok.token_val=="hprint"){
+		if(curtok.token_val == "hprint"){
 			AST_Tree_Node* node = new AST_Tree_Node(curtok);
 			head->add_child(node);
 			ctr++;
@@ -212,7 +241,7 @@ void parse_expression(std::vector<TokenType>tList){
 			node->add_child(ans);
 			std::cout<<std::stof(ans->eval_tok->token_val)<<std::endl;
 			ctr++;
-		}else if(curtok.token_val=="hfloat"){
+		} else if(curtok.token_val == "hfloat"){
 			ctr++; 
 			TokenType nextok = tList[ctr];
 			AST_Tree_Node* var = new AST_Tree_Node(nextok); 
@@ -233,7 +262,7 @@ void parse_expression(std::vector<TokenType>tList){
 					}
 					ctr++;
 				}
-				if(expr.size()==0){
+				if(expr.size() == 0){
 					perror("Syntax Error! nothing after '=' "); 
 					exit(-1);
 				}
@@ -250,7 +279,7 @@ void parse_expression(std::vector<TokenType>tList){
 				envList.top().var_map.insert(std::pair<std::string , Variable*>(var_name , newvar));
 				ctr++; 
 			}
-		}else if(curtok.token_number==tok_id){
+		} else if(curtok.token_number == tok_id){
 			ctr++;
 			TokenType nextok = tList[ctr];
 			if(nextok.token_val=="="){
@@ -277,7 +306,7 @@ void parse_expression(std::vector<TokenType>tList){
 				envList.top().var_map[curtok.token_val]->val = val; 
 				ctr++;
 			}
-		}else if(curtok.token_number==tok_open_b){
+		} else if(curtok.token_number == tok_open_b){
 			//to be FIXED
 			// std::cout<<"in"<<std::endl;
 			std::stack<int>paran;
@@ -307,7 +336,7 @@ void parse_expression(std::vector<TokenType>tList){
 			parse_expression(expr); 
 			exit_environment(); 
 			ctr++; 
-		}else{
+		} else{
 			perror("Syntax error!"); 
 			exit(-1); 
 		}

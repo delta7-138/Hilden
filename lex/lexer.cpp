@@ -86,7 +86,7 @@ std::vector<TokenType> gettok(std::string source){
 }
 
 bool isKeyword(std::string word){
-    if(word == "hfloat" || word=="hchar" || word=="hstring" || word=="hprint" || word=="hwhile"){
+    if(word == "hfloat" || word == "hchar" || word == "hstring" || word == "hprint" || word == "hwhile" || word == "hif"){
         return true;
     }
     return false; 

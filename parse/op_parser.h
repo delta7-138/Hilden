@@ -8,16 +8,22 @@
 #include <map>
 #include <cstdlib>
 #include <iterator>
-#include "lexer.h"
-#include "token.h"
+#include "../lex/lexer.h"
+#include "../lex/token.h"
 
 #define EQ_PREC 1
 #define ADD_PREC 2
 #define MUL_PREC 3
-class AST_Tree_Node{
-	TokenType tok; 
+class AST_Tree_Node
+{
+public:
+	TokenType* tok; 
+	TokenType* eval_tok;
 	std::vector<AST_Tree_Node *>childList;
-}; 
+ 	AST_Tree_Node(TokenType tok);
+	AST_Tree_Node();
+	int add_child(AST_Tree_Node* node);
+};
 
 class Variable{
 public: 
@@ -44,7 +50,7 @@ public:
 int get_precedence(std::string);
 float parse_primary(std::vector<TokenType>);
 void parse_expression(std::vector<TokenType>);
-float parse_binary(std::vector<TokenType>tList);
+AST_Tree_Node* parse_binary(std::vector<TokenType>tList);
 void init_variable(TokenType , std::string val); 
 
 #endif

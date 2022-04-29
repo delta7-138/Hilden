@@ -12,6 +12,26 @@ int get_precedence(std::string tokval){
 	return -1; 
 }
 
+AST_Tree_Node :: AST_Tree_Node(TokenType tok)
+{
+	this->tok = new TokenType(tok);
+}
+
+int AST_Tree_Node :: add_child(AST_Tree_Node* node)
+{
+	this->childList.push_back(node);
+}
+
+void print_ast(AST_Tree_Node* node, int depth=0){
+	node->tok->print();
+	for(int i=0; i<node->childList.size(); i++){
+		for(int j=0;j<depth;j++){
+			std::cout<<"   ";
+		}
+		print_ast(node->childList[i], depth+1);
+	}
+}
+
 float get_ans(float lhs , std::string op , float rhs){
 	if(op=="+"){
 		return lhs + rhs; 
@@ -56,7 +76,7 @@ void init_variable(TokenType tok , std::string val){
 }
 
 //Uses Shunting Yard Algorithm
-float parse_binary(std::vector<TokenType>tList){
+AST_Tree_Node* parse_binary(std::vector<TokenType>tList){
 	std::vector<TokenType>output_q; 
 	std::stack<TokenType>op_stack; 
 
@@ -124,34 +144,55 @@ float parse_binary(std::vector<TokenType>tList){
 		}
 	}
 	
-	std::stack<float>parse_stack;
+	std::stack<AST_Tree_Node*>parse_stack;
 	for(int i = 0; i<output_q.size(); i++){
 		TokenType tok = output_q[i]; 
+
 		if(tok.token_number==tok_hfloat || tok.token_number==tok_id){
-			parse_stack.push(std::stof(tok.token_val));
+			AST_Tree_Node* ast = new AST_Tree_Node(tok);
+			ast->eval_tok = new TokenType(tok);
+			parse_stack.push(ast);
 		}else if(tok.token_number == tok_operator){
-			float rhs = parse_stack.top();
+			AST_Tree_Node* rhs_Node = parse_stack.top();
 			parse_stack.pop();
 			if(parse_stack.empty()){
-				return rhs; 
+				// return std::stof(rhs_Node->tok->token_val); 
+				return rhs_Node;
 			}
-			float lhs = parse_stack.top();
+			AST_Tree_Node* lhs_Node = parse_stack.top();
 			parse_stack.pop();
-			float ans = get_ans(lhs , tok.token_val, rhs);
-			parse_stack.push(ans); 
+			float ans = get_ans(std::stof(lhs_Node->eval_tok->token_val), tok.token_val, std::stof(rhs_Node->eval_tok->token_val));
+			TokenType tok_ans;
+			tok_ans.token_number = tok_hfloat;
+			tok_ans.token_val = std::to_string(ans);
+			AST_Tree_Node* ast = new AST_Tree_Node(tok);
+			ast->eval_tok = new TokenType(tok_ans);
+			ast->add_child(lhs_Node);
+			ast->add_child(rhs_Node);
+			parse_stack.push(ast); 
 		}
 	}
-	return parse_stack.top();
+	AST_Tree_Node* ast = parse_stack.top();
+	parse_stack.pop();
+	// print_ast(ast);
+
+	// return std::stof(ast->tok->token_val);
+	return ast;
 }
 
 void parse_expression(std::vector<TokenType>tList){
 	Environment globalenv; 
 	globalenv.level = 0; 
 	envList.push(globalenv); 
+	TokenType tok;
+	tok.token_val  = "Start"; 
+	AST_Tree_Node* head = new AST_Tree_Node(tok);
 	int ctr = 0; 
 	while(ctr<tList.size()){
 		TokenType curtok = tList[ctr]; 
 		if(curtok.token_val=="hprint"){
+			AST_Tree_Node* node = new AST_Tree_Node(curtok);
+			head->add_child(node);
 			ctr++;
 			TokenType nextok = tList[ctr]; 
 			std::vector<TokenType>expr; 
@@ -167,16 +208,21 @@ void parse_expression(std::vector<TokenType>tList){
 				std::cout<<std::endl;
 				return ;
 			}
-			float ans = parse_binary(expr); 
-			std::cout<<ans<<std::endl;
+			AST_Tree_Node* ans = parse_binary(expr); 
+			node->add_child(ans);
+			std::cout<<std::stof(ans->eval_tok->token_val)<<std::endl;
 			ctr++;
 		}else if(curtok.token_val=="hfloat"){
 			ctr++; 
 			TokenType nextok = tList[ctr];
+			AST_Tree_Node* var = new AST_Tree_Node(nextok); 
 			std::string var_name = nextok.token_val; 
 			ctr++; 
 			TokenType next_next_tok = tList[ctr];
 			if(next_next_tok.token_val=="="){
+				AST_Tree_Node* node = new AST_Tree_Node(next_next_tok);
+				head->add_child(node);
+				node->add_child(var);
 				std::vector<TokenType>expr;
 				ctr++;
 				while(nextok.token_val!=";"){
@@ -191,12 +237,14 @@ void parse_expression(std::vector<TokenType>tList){
 					perror("Syntax Error! nothing after '=' "); 
 					exit(-1);
 				}
-				float ans = parse_binary(expr); 
+				// float ans = parse_binary(expr); 
+				AST_Tree_Node* ans = parse_binary(expr); 
+				node->add_child(ans);
 				Variable *newvar = new Variable();  
 				std::ostringstream ss;
-				ss << ans; 
-				std::string val(ss.str());
-				newvar->val = val;
+				// ss << ans; 
+				// std::string val(ss.str());
+				newvar->val = ans->eval_tok->token_val;
 				newvar->type = "float"; 
 				newvar->name = var_name; 
 				envList.top().var_map.insert(std::pair<std::string , Variable*>(var_name , newvar));
@@ -206,7 +254,11 @@ void parse_expression(std::vector<TokenType>tList){
 			ctr++;
 			TokenType nextok = tList[ctr];
 			if(nextok.token_val=="="){
-				std::vector<TokenType>expr; 
+				AST_Tree_Node* node = new AST_Tree_Node(nextok);
+				head->add_child(node);
+				AST_Tree_Node* var = new AST_Tree_Node(curtok);
+				node->add_child(var);
+				std::vector<TokenType>expr;
 				ctr++; 
 				while(nextok.token_val!=";"){
 					nextok = tList[ctr];
@@ -216,10 +268,12 @@ void parse_expression(std::vector<TokenType>tList){
 					}
 					ctr++;
 				}
-				float ans = parse_binary(expr); 
-				std::ostringstream ss;
-				ss << ans; 
-				std::string val(ss.str());
+				// float ans = parse_binary(expr); 
+				AST_Tree_Node* ans = parse_binary(expr); 
+				node->add_child(ans);
+				// std::ostringstream ss;
+				// ss << ans; 
+				std::string val(ans->eval_tok->token_val);
 				envList.top().var_map[curtok.token_val]->val = val; 
 				ctr++;
 			}
@@ -258,5 +312,6 @@ void parse_expression(std::vector<TokenType>tList){
 			exit(-1); 
 		}
 	}
+	print_ast(head);
 }
 

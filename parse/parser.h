@@ -1,32 +1,68 @@
-#ifndef __PARSE_H_
-#define __PARSE_H_
-
-#include "../token/token.h"
-#include "../lex/lexer.h"
+#ifndef __OP_PARSE_H_
+#define __OP_PARSE_H_
 #include <stack>
 #include <queue>
-class ParseNumericNode{
-	/*
-	E = 1 ; T = 2; F = 3;
-	E' = -1 ; T = -2; epsilon = 0 
-	*/
-	int val; 
-	std::string name;//only for idenitifers; 
-	bool is_terminal; 
-	bool is_epsilon; 
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <map>
+#include <cstdlib>
+#include <iterator>
+#include "../lex/lexer.h"
+#include "../lex/token.h"
 
+#define EQ_PREC 1
+#define ADD_PREC 2
+#define MUL_PREC 3
+
+enum AST_Node_Type {
+	n_binary = 0, // Default, binary statements
+	n_unary = 1, // Unary statements, return, break etc
+	n_ternary = 2, // Ternery statements, conditionals, ternery operator
+	n_multi = 3
+}; 
+
+class AST_Tree_Node
+{
+public:
+	TokenType* tok; 
+	TokenType* eval_tok;
+	int node_type;
+	std::vector<AST_Tree_Node *>childList;
+ 	AST_Tree_Node(TokenType tok);
+ 	AST_Tree_Node(TokenType tok, int node_type);
+	AST_Tree_Node();
+	int add_child(AST_Tree_Node* node);
 };
 
-class AST_Binary_node{
-	char op; //operator node 
-	AST_Binary_node *left; 
-	AST_Binary_node *right; 
-	float value; 
+class Variable{
+public: 
+	std::string val; 
+	std::string type;
+	std::string name; 
+}; 
+
+class Environment{
+public: 
+	int level; 
+	std::map<std::string , Variable *>var_map; 
 };
 
-std::vector<int> production(int start , int input);
+class Function{
+public: 
+	std::vector<TokenType>prototype;
+	std::vector<TokenType>body; 
+	std::string return_type; 
+}; 
 
-float build_parse_tree(std::vector<TokenType>tokenList);
-//function to add a node as per production to tree is useful too
+
+
+int get_precedence(std::string);
+float parse_primary(std::vector<TokenType>);
+AST_Tree_Node *parse_expression(AST_Tree_Node * , int);
+AST_Tree_Node* parse_binary();
+void init_variable(TokenType , std::string val); 
+AST_Tree_Node *init_parse(std::vector<TokenType>tokenList);
+void print_ast(AST_Tree_Node* node, int);
 
 #endif

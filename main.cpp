@@ -20,6 +20,7 @@ int main(int argc , char *argv[]){
 	// for(int i = 0; i<tList.size(); i++){
 	//      tList[i].print();
 	// }
-	parse_expression(tList); 
+	
+	print_ast(parse_expression(init_parse(tList) , tList.size()) , 0); 
 	return 0;
 }

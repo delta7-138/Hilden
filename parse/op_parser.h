@@ -19,7 +19,8 @@ enum AST_Node_Type {
 	n_binary = 0, // Default, binary statements
 	n_unary = 1, // Unary statements, return, break etc
 	n_ternary = 2, // Ternery statements, conditionals, ternery operator
-};
+	n_multi = 3
+}; 
 
 class AST_Tree_Node
 {
@@ -58,8 +59,10 @@ public:
 
 int get_precedence(std::string);
 float parse_primary(std::vector<TokenType>);
-void parse_expression(std::vector<TokenType>);
-AST_Tree_Node* parse_binary(std::vector<TokenType>tList);
+AST_Tree_Node *parse_expression(AST_Tree_Node * , int);
+AST_Tree_Node* parse_binary();
 void init_variable(TokenType , std::string val); 
+AST_Tree_Node *init_parse(std::vector<TokenType>tokenList);
+void print_ast(AST_Tree_Node* node, int);
 
 #endif

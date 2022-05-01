@@ -1,4 +1,12 @@
-hfloat x = 3.0; 
-hfloat y = 2.0 + 1.0 * 3.0 / 6.0;
-hfloat z = x + y; 
-hprint [z];
+hfloat x = 4.5 + (8.9 - 5.6);
+[
+x = 3.6 + 5.6 - 6.8; 
+x = 4.5 + 6.7 - (8.9 * 6.6);
+	[
+		hfloat a = 5.6; 
+	]
+]
+hfloat xyz = 5.67;
+[
+	hfloat x = 4.5;
+]

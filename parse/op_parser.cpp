@@ -1,6 +1,9 @@
 #include "op_parser.h"
-static std::stack<Environment>envList; 
-int curr_env_index = 0; 
+int token_list_ptr; 
+std::vector<TokenType>tList; 
+TokenType curtok; 
+AST_Tree_Node* head; 
+std::map<int , int>block_lookup; 
 int get_precedence(std::string tokval){
 	if(tokval=="+" || tokval=="-"){
 		return ADD_PREC; 
@@ -29,6 +32,59 @@ int AST_Tree_Node :: add_child(AST_Tree_Node* node)
 	this->childList.push_back(node);
 	return 0;
 }
+
+AST_Tree_Node * init_parse(std::vector<TokenType>tokenList){
+	TokenType tok_E; 
+	tok_E.token_val = "E"; 
+	tok_E.token_number = tok_undef;
+	head = new AST_Tree_Node(tok_E); 
+	token_list_ptr = 0; 
+	tList = tokenList; 
+	curtok = tList[0]; 
+
+	//Creating block lookup table 
+	std::stack<int>block_stack; 
+	int index = -1; 
+	for(int i = 0; i<tList.size(); i++){
+		if(tList[i].token_number==tok_open_b){
+			index = i; 
+			break; 
+		}
+	}
+	if(index!=-1){
+		block_stack.push(index); 
+		index++; 
+		while(true){ // creating lookup table for starting and ending position of blocks with starting position as key. 
+			//return error in case index > size of tList
+			if(index>=tokenList.size()){
+				break; 
+			}
+			TokenType tmp = tList[index]; 
+			if(tmp.token_number==tok_open_b){
+				block_stack.push(index); 
+			}
+			else if(tmp.token_number==tok_close_b){
+				block_lookup.insert(std::pair<int , int>(block_stack.top() , index)); 
+				std::cout<<block_stack.top()<<" "<<index<<std::endl; 
+				if(block_stack.empty()){
+					return nullptr; //error in parsing unbalanced block braces
+				}
+				block_stack.pop(); 
+			}
+			index++; 
+		}
+		if(!block_stack.empty()){
+			return nullptr; //error in parsing unbalanced block braces
+		}
+	}
+	return head; 
+}
+
+void get_next_tok(){
+	token_list_ptr++; 
+}
+
+
 
 void print_ast(AST_Tree_Node* node, int depth=0){
 	std::cout << "[" << node->node_type << ":";
@@ -63,56 +119,23 @@ float get_ans(float lhs , std::string op , float rhs){
 	return -1.0; 
 }
 
-void create_environment(){
-	Environment newenv; 
-	newenv.level = envList.top().level + 1; 
-	envList.push(newenv); 
-}
-
-void exit_environment(){
-	envList.pop();
-}
-
-void init_variable(TokenType tok , std::string val){
-	if(envList.top().var_map.find(tok.token_val)==envList.top().var_map.end()){
-		perror("Variable already exists!"); 
-		exit(-1); 
-	}
-	Variable *newvar = new Variable(); 
-	newvar->name = tok.token_val; 
-	newvar->val = val; 
-	newvar->type = "float"; 
-	envList.top().var_map.insert(std::pair<std::string , Variable *>(tok.token_val , newvar)); 
-}
-
 /**
  * Parses binary expressions. Takes token list tList of the binary expression
  * Uses the Shunting Yard algorithm
  * Returns a binary AST Node
  */
-AST_Tree_Node* parse_binary(std::vector<TokenType> tList){
+AST_Tree_Node* parse_binary(){
 	std::vector<TokenType>output_q; 
 	std::stack<TokenType>op_stack; 
 
 	int prev_tok_number = 1000;
-	for(int i = 0; i < tList.size(); i++){
+	for(int i = token_list_ptr; tList[token_list_ptr].token_number!=tok_sep || tList[token_list_ptr].token_val=="then"; i++ , token_list_ptr++){
 		TokenType tmp = tList[i]; 
 		int token_number = tmp.token_number; 
 		std::string token_value = tmp.token_val;
 		if(token_number==tok_hfloat || token_number==tok_id){
 			if(token_number==tok_hfloat){
 				output_q.push_back(tmp);
-			} else if(token_number==tok_id){
-				Environment currenv = envList.top(); 
-				if(currenv.var_map.find(token_value)==currenv.var_map.end()){
-					perror("Variable not initialized!"); 
-					exit(-1); 
-				}
-				Variable *var = currenv.var_map.at(token_value); 
-				TokenType literal; 
-				literal.token_number = tok_hfloat; 
-				literal.token_val = var->val; 
-				output_q.push_back(literal); 
 			}
 		} else if(token_number == tok_operator){
 			while(!op_stack.empty()){
@@ -209,138 +232,109 @@ AST_Tree_Node* parse_ternary(std::vector<TokenType> tList) {
  * Constructs the abstract syntax tree
  * TODO: Return the AST instead of printing.
  */
-void parse_expression(std::vector<TokenType>tList){
-	Environment globalenv; 
-	globalenv.level = 0; 
-	envList.push(globalenv); 
-	TokenType tok;
-	tok.token_val  = "Start"; 
-	AST_Tree_Node* head = new AST_Tree_Node(tok);
-	int ctr = 0; 
-	while(ctr < tList.size()){
-		TokenType curtok = tList[ctr]; 
-		if(curtok.token_val == "hprint"){
-			AST_Tree_Node* node = new AST_Tree_Node(curtok);
-			head->add_child(node);
-			ctr++;
-			TokenType nextok = tList[ctr]; 
-			std::vector<TokenType>expr; 
-			while(true){
-				nextok = tList[ctr]; 
-				if(nextok.token_number == tok_sep){
-					break;
-				}
-				expr.push_back(nextok); 
-				ctr++;
-			}
-			if(expr.size()==0){
-				std::cout<<std::endl;
-				return ;
-			}
-			AST_Tree_Node* ans = parse_binary(expr); 
-			node->add_child(ans);
-			std::cout<<std::stof(ans->eval_tok->token_val)<<std::endl;
-			ctr++;
-		} else if(curtok.token_val == "hfloat"){
-			ctr++; 
-			TokenType nextok = tList[ctr];
-			AST_Tree_Node* var = new AST_Tree_Node(nextok); 
-			std::string var_name = nextok.token_val; 
-			ctr++; 
-			TokenType next_next_tok = tList[ctr];
-			if(next_next_tok.token_val=="="){
-				AST_Tree_Node* node = new AST_Tree_Node(next_next_tok);
-				head->add_child(node);
-				node->add_child(var);
-				std::vector<TokenType>expr;
-				ctr++;
-				while(nextok.token_val!=";"){
-					nextok = tList[ctr];
-					expr.push_back(nextok);
-					if(nextok.token_val==";"){
-						break; 
-					}
-					ctr++;
-				}
-				if(expr.size() == 0){
-					perror("Syntax Error! nothing after '=' "); 
-					exit(-1);
-				}
-				// float ans = parse_binary(expr); 
-				AST_Tree_Node* ans = parse_binary(expr); 
-				node->add_child(ans);
-				Variable *newvar = new Variable();  
-				std::ostringstream ss;
-				// ss << ans; 
-				// std::string val(ss.str());
-				newvar->val = ans->eval_tok->token_val;
-				newvar->type = "float"; 
-				newvar->name = var_name; 
-				envList.top().var_map.insert(std::pair<std::string , Variable*>(var_name , newvar));
-				ctr++; 
-			}
-		} else if(curtok.token_number == tok_id){
-			ctr++;
-			TokenType nextok = tList[ctr];
-			if(nextok.token_val=="="){
-				AST_Tree_Node* node = new AST_Tree_Node(nextok);
-				head->add_child(node);
-				AST_Tree_Node* var = new AST_Tree_Node(curtok);
-				node->add_child(var);
-				std::vector<TokenType>expr;
-				ctr++; 
-				while(nextok.token_val!=";"){
-					nextok = tList[ctr];
-					expr.push_back(nextok);
-					if(nextok.token_val==";"){
-						break; 
-					}
-					ctr++;
-				}
-				// float ans = parse_binary(expr); 
-				AST_Tree_Node* ans = parse_binary(expr); 
-				node->add_child(ans);
-				// std::ostringstream ss;
-				// ss << ans; 
-				std::string val(ans->eval_tok->token_val);
-				envList.top().var_map[curtok.token_val]->val = val; 
-				ctr++;
-			}
-		} else if(curtok.token_number == tok_open_b){
-			//to be FIXED
-			// std::cout<<"in"<<std::endl;
-			std::stack<int>paran;
-			paran.push(1); 
-			bool flag_last = false; 
-			std::vector<TokenType>expr; 
-			create_environment(); 
-			while(true){
-				if(paran.empty()){
-					break;
-				}
-				TokenType nextok = tList[++ctr];
-				if(nextok.token_number==tok_open_b){
-					paran.push(1); 
-				}else if(nextok.token_number==tok_close_b){
-					if(!paran.empty()){
-						if(paran.size()==1){
-							flag_last = true;
-						}
-						paran.pop();
-					}
-				}
-				if(!flag_last){
-					expr.push_back(nextok);
-				}
-			}
-			parse_expression(expr); 
-			exit_environment(); 
-			ctr++; 
-		} else{
-			perror("Syntax error!"); 
-			exit(-1); 
-		}
-	}
-	print_ast(head);
-}
 
+
+/**
+Grammar of the language
+E -> stmt;E | [E]
+stmt -> A | D | Def | If | Loop | U {A for Assignment D for Declaration and C for Calling a function Def for function definition ,
+If and Loop are self-explanatory
+U for unary updation}
+
+D -> <htype> id | htype fid (<htype>,*)
+Def -> <htype> fid (<htype> id, *)Body  (Body for function body)
+A -> id = S  | <htype> id = S (S is a subexpression containing Binary, Unary and Ternary Operations)
+U -> ++id | id++ | --id | id-- | id+=S | id-=S 
+If -> if S then E else E
+Body -> [E] | [E ret S]
+*/
+
+
+/**
+Recursive parse_expression relies on two variables -> head of the AST passed and the tokenList index upto which it should keep parsing
+In case of blocks term is set as the closing block symbol to stop parsing when it reaches there, the index of which is stored in the block lookup table
+computed at the start of parsing. 
+Also in case of blocks we can accordingly pass the child, call parse_expression on the child with the appropriate term and get the tree for the same, 
+which is then added as to the childList of the head in the function frame calling it.
+This mechanism is useful in function calls as well and we can later add the environment variable which is essential for semantic analysis. 
+*/
+AST_Tree_Node* parse_expression(AST_Tree_Node *head , int term){
+	if(token_list_ptr>=tList.size() || token_list_ptr>=term){ //Base case for recursion
+		return head; 
+	}
+	curtok = tList[token_list_ptr]; 
+	int token_number = curtok.token_number; 
+	std::string curtok_val = curtok.token_val; 
+
+
+	if(token_number==tok_open_b){
+		// E -> [E] rule 
+		AST_Tree_Node *newblocknode; 
+		newblocknode = new AST_Tree_Node(curtok); 
+		TokenType blocktok; 
+		blocktok.token_val = "E"; 
+		blocktok.token_number = tok_undef;
+		AST_Tree_Node *subblock = new AST_Tree_Node(blocktok); 
+		get_next_tok(); 
+		
+		newblocknode->add_child(parse_expression(subblock , block_lookup.at(token_list_ptr-1))); 
+
+		newblocknode->add_child(new AST_Tree_Node(tList[token_list_ptr]));
+		
+		if(token_list_ptr==tList.size()){
+			head->add_child(newblocknode); 
+			return head;
+		}
+		
+		head->add_child(newblocknode); 
+	}
+
+	else if(token_number==tok_keyword){
+		//stmt -> D | If | Loop | Def rule 
+		AST_Tree_Node *newnode;
+		bool assflag; 
+		AST_Tree_Node *assnode;
+		if(curtok_val=="hif"){ //stmt -> If rule 
+		}else if(curtok_val=="hwhile"){ //stmt -> while rule 
+
+		}else{ // here we have to see lookahead and further check if it is the stmt->D smt->Def rule 
+			assflag = false; 
+			TokenType la2 = tList[token_list_ptr+2];  //Check if it is assignment and declaration also (A -> <htype> id = S rule)
+			if(la2.token_val=="="){ //creating a declaration node and an assignment node of type <hfloat> -> <x> and =->(x , expr)
+				newnode = new AST_Tree_Node(curtok , n_unary);
+				newnode->add_child(new AST_Tree_Node(tList[token_list_ptr+1] , n_unary));
+				assnode = new AST_Tree_Node(la2 , n_binary); 
+				assnode->add_child(new AST_Tree_Node(tList[token_list_ptr+1] , n_unary));
+				assnode->add_child(parse_binary());
+				assflag = true; 
+
+			}else if(la2.token_val==";"){ //creating a declaration node of type <hfloat> -> <idname> 
+				newnode = new AST_Tree_Node(curtok , n_unary);
+				newnode->add_child(new AST_Tree_Node(tList[token_list_ptr+1] , n_unary));
+				get_next_tok();
+				get_next_tok(); 
+			}else{
+				//Function declaration also has arguments 
+			}
+		}
+		head->add_child(newnode);
+		if(assflag){ // only if assignment happens add this node
+			head->add_child(assnode);
+		}
+
+	}else if(token_number==tok_id){
+		//this is the A -> id = S or stmt -> U (for unary updation) rule 
+		AST_Tree_Node *child; 
+		TokenType la1 = tList[token_list_ptr+1]; //lookahead by 1
+		if(la1.token_val=="="){
+			child = new AST_Tree_Node(la1 , n_binary);
+			child->add_child(new AST_Tree_Node(curtok , n_unary)); 
+			get_next_tok(); 
+			get_next_tok(); 
+			child->add_child(parse_binary());
+		}
+		head->add_child(child);   
+	}
+	token_list_ptr++; 
+	return parse_expression(head , term); //calling it recursively
+}

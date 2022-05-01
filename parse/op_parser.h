@@ -59,7 +59,7 @@ public:
 
 int get_precedence(std::string);
 float parse_primary(std::vector<TokenType>);
-AST_Tree_Node *parse_expression(AST_Tree_Node * , int);
+AST_Tree_Node *parse_expression(AST_Tree_Node *);
 AST_Tree_Node* parse_binary();
 void init_variable(TokenType , std::string val); 
 AST_Tree_Node *init_parse(std::vector<TokenType>tokenList);

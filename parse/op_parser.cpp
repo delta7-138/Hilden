@@ -1,9 +1,11 @@
 #include "op_parser.h"
+
 int token_list_ptr; 
 std::vector<TokenType>tList; 
 TokenType curtok; 
 AST_Tree_Node* head; 
-std::map<int , int>block_lookup; 
+std::map<int , int>block_lookup;
+
 int get_precedence(std::string tokval){
 	if(tokval=="+" || tokval=="-"){
 		return ADD_PREC; 
@@ -81,7 +83,7 @@ AST_Tree_Node * init_parse(std::vector<TokenType>tokenList){
 }
 
 void get_next_tok(){
-	token_list_ptr++; 
+	token_list_ptr++;
 }
 
 
@@ -92,8 +94,9 @@ void print_ast(AST_Tree_Node* node, int depth=0){
 	std::cout << "]" << std::endl;
 	for(int i=0; i < node->childList.size(); i++){
 		for(int j = 0; j < depth; j++){
-			std::cout<<"|_ ";
+			std::cout<<"|   ";
 		}
+		std::cout << "|___";
 		print_ast(node->childList[i], depth+1);
 	}
 }
@@ -129,7 +132,8 @@ AST_Tree_Node* parse_binary(){
 	std::stack<TokenType>op_stack; 
 
 	int prev_tok_number = 1000;
-	for(int i = token_list_ptr; tList[token_list_ptr].token_number!=tok_sep || tList[token_list_ptr].token_val=="then"; i++ , token_list_ptr++){
+	for(int i = token_list_ptr; tList[token_list_ptr].token_number!=tok_sep; i++ , token_list_ptr++){
+		if(tList[token_list_ptr].token_val=="[") break;
 		TokenType tmp = tList[i]; 
 		int token_number = tmp.token_number; 
 		std::string token_value = tmp.token_val;
@@ -251,15 +255,18 @@ Body -> [E] | [E ret S]
 
 
 /**
-Recursive parse_expression relies on two variables -> head of the AST passed and the tokenList index upto which it should keep parsing
-In case of blocks term is set as the closing block symbol to stop parsing when it reaches there, the index of which is stored in the block lookup table
-computed at the start of parsing. 
-Also in case of blocks we can accordingly pass the child, call parse_expression on the child with the appropriate term and get the tree for the same, 
-which is then added as to the childList of the head in the function frame calling it.
-This mechanism is useful in function calls as well and we can later add the environment variable which is essential for semantic analysis. 
+ * Recursive parse_expression relies on two variables -> head of the AST passed and the tokenList index upto which it should keep 
+ * parsing
+ * In case of blocks term is set as the closing block symbol to stop parsing when it reaches there, the index of which is stored
+ * in the block lookup table computed at the start of parsing. 
+ * Also in case of blocks we can accordingly pass the child, call parse_expression on the child with the appropriate term and 
+ * get the tree for the same, which is then added as to the childList of the head in the function frame calling it.
+ * This mechanism is useful in function calls as well and we can later add the environment variable which is essential for
+ * semantic analysis. 
 */
-AST_Tree_Node* parse_expression(AST_Tree_Node *head , int term){
-	if(token_list_ptr>=tList.size() || token_list_ptr>=term){ //Base case for recursion
+AST_Tree_Node* parse_expression(AST_Tree_Node *head){
+	std::cout << "LETS SEE: " << tList[token_list_ptr].token_val << std::endl;
+	if(token_list_ptr>=tList.size() || tList[token_list_ptr].token_val == "]" ){ //Base case for recursion
 		return head; 
 	}
 	curtok = tList[token_list_ptr]; 
@@ -277,7 +284,7 @@ AST_Tree_Node* parse_expression(AST_Tree_Node *head , int term){
 		AST_Tree_Node *subblock = new AST_Tree_Node(blocktok); 
 		get_next_tok(); 
 		
-		newblocknode->add_child(parse_expression(subblock , block_lookup.at(token_list_ptr-1))); 
+		newblocknode->add_child(parse_expression(subblock)); 
 
 		newblocknode->add_child(new AST_Tree_Node(tList[token_list_ptr]));
 		
@@ -294,10 +301,26 @@ AST_Tree_Node* parse_expression(AST_Tree_Node *head , int term){
 		AST_Tree_Node *newnode;
 		bool assflag; 
 		AST_Tree_Node *assnode;
-		if(curtok_val=="hif"){ //stmt -> If rule 
-		}else if(curtok_val=="hwhile"){ //stmt -> while rule 
+		if(curtok_val=="hif"){ //stmt -> If rule
+			AST_Tree_Node* if_node = new AST_Tree_Node(tList[token_list_ptr], n_ternary);
+			AST_Tree_Node* bool_exp = parse_binary();
+			AST_Tree_Node* true_body = parse_expression(if_node);
+			if_node->add_child(bool_exp);
 
-		}else{ // here we have to see lookahead and further check if it is the stmt->D smt->Def rule 
+			// Check for an else clause corresponding to this IF
+			get_next_tok();
+			if (token_list_ptr < tList.size()){
+				tList[token_list_ptr];
+				if (tList[token_list_ptr].token_val == "helse") {
+					AST_Tree_Node* false_body = parse_expression(if_node);
+				}
+			}
+
+			head->add_child(if_node);
+
+		} else if(curtok_val=="hwhile"){ //stmt -> while rule 
+
+		} else{ // here we have to see lookahead and further check if it is the stmt->D smt->Def rule 
 			assflag = false; 
 			TokenType la2 = tList[token_list_ptr+2];  //Check if it is assignment and declaration also (A -> <htype> id = S rule)
 			if(la2.token_val=="="){ //creating a declaration node and an assignment node of type <hfloat> -> <x> and =->(x , expr)
@@ -336,5 +359,5 @@ AST_Tree_Node* parse_expression(AST_Tree_Node *head , int term){
 		head->add_child(child);   
 	}
 	token_list_ptr++; 
-	return parse_expression(head , term); //calling it recursively
+	return parse_expression(head); //calling it recursively
 }

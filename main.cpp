@@ -21,6 +21,6 @@ int main(int argc , char *argv[]){
 	//      tList[i].print();
 	// }
 	
-	print_ast(parse_expression(init_parse(tList) , tList.size()) , 0); 
+	print_ast(parse_expression(init_parse(tList)) , 0); 
 	return 0;
 }

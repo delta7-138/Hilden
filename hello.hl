@@ -10,3 +10,9 @@ hfloat xyz = 5.67;
 [
 	hfloat x = 4.5;
 ]
+
+hif 5.0 + 3.2 [
+	hfloat iffer = 3.3;
+] helse [
+	hfloat elser = 0.0;
+]

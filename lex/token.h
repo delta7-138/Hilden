@@ -17,7 +17,8 @@ enum Token {
     tok_id = -10, 
     tok_undef = -6, 
     tok_open_b = -11, 
-    tok_close_b = -12
+    tok_close_b = -12, 
+    tok_hint = -13
 };
 
 #endif

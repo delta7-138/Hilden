@@ -1,4 +1,4 @@
-#include "op_parser.h"
+#include "parser.h"
 int token_list_ptr; 
 std::vector<TokenType>tList; 
 TokenType curtok; 
@@ -134,9 +134,7 @@ AST_Tree_Node* parse_binary(){
 		int token_number = tmp.token_number; 
 		std::string token_value = tmp.token_val;
 		if(token_number==tok_hfloat || token_number==tok_id){
-			if(token_number==tok_hfloat){
-				output_q.push_back(tmp);
-			}
+			output_q.push_back(tmp);
 		} else if(token_number == tok_operator){
 			while(!op_stack.empty()){
 				int prec_top = get_precedence(op_stack.top().token_val);
@@ -199,10 +197,10 @@ AST_Tree_Node* parse_binary(){
 			}
 			AST_Tree_Node* lhs_Node = parse_stack.top();
 			parse_stack.pop();
-			float ans = get_ans(std::stof(lhs_Node->eval_tok->token_val), tok.token_val, std::stof(rhs_Node->eval_tok->token_val));
+			// float ans = get_ans(std::stof(lhs_Node->eval_tok->token_val), tok.token_val, std::stof(rhs_Node->eval_tok->token_val));
 			TokenType tok_ans;
 			tok_ans.token_number = tok_hfloat;
-			tok_ans.token_val = std::to_string(ans);
+			tok_ans.token_val = "0.0"; 
 			AST_Tree_Node* ast = new AST_Tree_Node(tok);
 			ast->eval_tok = new TokenType(tok_ans);
 			ast->add_child(lhs_Node);
@@ -313,8 +311,57 @@ AST_Tree_Node* parse_expression(AST_Tree_Node *head , int term){
 				newnode->add_child(new AST_Tree_Node(tList[token_list_ptr+1] , n_unary));
 				get_next_tok();
 				get_next_tok(); 
-			}else{
+			}else if(curtok_val=="ret"){
+				newnode = new AST_Tree_Node(curtok); 
+				get_next_tok(); 
+				newnode->add_child(parse_binary());
+			}else if(curtok_val=="hdec"){
 				//Function declaration also has arguments 
+				newnode = new AST_Tree_Node(curtok); 
+				get_next_tok();
+				TokenType fid = tList[token_list_ptr];
+				newnode->add_child(new AST_Tree_Node(fid));
+				get_next_tok(); //'('
+				get_next_tok(); //'hfloat hint '
+				while(token_list_ptr<tList.size() && curtok.token_number!=tok_close_p){
+					curtok = tList[token_list_ptr]; //<htype> fid( <htype> , <htype> , <htype> , ); 
+					if(curtok.token_number == tok_sep){
+						break;
+					}
+					get_next_tok(); 
+					get_next_tok(); 
+					newnode->add_child(new AST_Tree_Node(curtok));
+				} 
+			}
+			else{
+				newnode = new AST_Tree_Node(curtok);
+				get_next_tok(); 
+				TokenType fid = tList[token_list_ptr]; 
+				newnode->add_child(new AST_Tree_Node(fid));
+				get_next_tok(); // '('
+				get_next_tok(); 
+				while(token_list_ptr<tList.size()){
+					curtok = tList[token_list_ptr]; //<htype> fid( <htype> a , <htype> b, <htype>c , )[E or E ret S]; 
+					get_next_tok(); 
+					TokenType id = tList[token_list_ptr]; //
+					get_next_tok(); // points to ; 
+					if(tList[token_list_ptr+1].token_number == tok_open_b){
+						std::cout<<token_list_ptr<<std::endl;
+						break;
+					}
+					get_next_tok(); //points to next return type; 
+					AST_Tree_Node *returnnode = new AST_Tree_Node(curtok); 
+					AST_Tree_Node *idnode = new AST_Tree_Node(id);
+					returnnode->add_child(idnode);
+					newnode->add_child(returnnode);
+				}//pointing inside the body now
+				get_next_tok(); 
+				TokenType bodytok; 
+				bodytok.token_val= "FB"; 
+				bodytok.token_number = tok_undef; 
+				AST_Tree_Node *fbnode = new AST_Tree_Node(bodytok); 
+				newnode->add_child(parse_expression(fbnode , block_lookup.at(token_list_ptr)));
+				token_list_ptr--; 
 			}
 		}
 		head->add_child(newnode);

@@ -19,7 +19,8 @@ enum AST_Node_Type {
 	n_binary = 0, // Default, binary statements
 	n_unary = 1, // Unary statements, return, break etc
 	n_ternary = 2, // Ternery statements, conditionals, ternery operator
-	n_multi = 3
+	n_multi = 3, 
+	n_empty = -1
 }; 
 
 class AST_Tree_Node

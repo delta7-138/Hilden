@@ -1,4 +1,4 @@
-#include "parse/op_parser.h"
+#include "parse/parser.h"
 #include "lex/lexer.h"
 #include "lex/token.h"
 #include <fstream>
@@ -18,7 +18,7 @@ int main(int argc , char *argv[]){
 	}
 	std::vector<TokenType>tList = gettok(data);
 	// for(int i = 0; i<tList.size(); i++){
-	//      tList[i].print();
+	//       tList[i].print();
 	// }
 	
 	print_ast(parse_expression(init_parse(tList) , tList.size()) , 0); 

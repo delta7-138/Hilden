@@ -10,3 +10,15 @@ hfloat xyz = 5.67;
 [
 	hfloat x = 4.5;
 ]
+
+hdec func ( hfloat; hchar ); 
+hfloat df = 78.0; 
+hdec func2 ( hfloat ; hint ; hfloat ); 
+hfloat func ( hfloat x; hchar c)[
+	hfloat a = 4.5; 
+	hfloat b = a + 6.0; 
+	ret (a + b); 
+]
+
+hfloat xyz = 5.678; 
+

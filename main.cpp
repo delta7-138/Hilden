@@ -16,11 +16,13 @@ int main(int argc , char *argv[]){
 		ss<<infile.rdbuf(); 
 		data = ss.str(); 
 	}
-	std::vector<TokenType>tList = gettok(data);
-	for(int i = 0; i<tList.size(); i++){
-	      tList[i].print();
-	}
-	
-	print_ast(parse_expression(init_parse(tList) , tList.size()) , 0); 
+	Lexer *lexer = new Lexer(data); 
+	std::vector<TokenType>tList = lexer->gettok(); 
+	lexer->print_token_list(); 
+	std::cout<<std::endl;
+
+	Parser *parser = new Parser(tList); 
+	parser->parse(); 
+	parser->print_ast(parser->root , 0); 
 	return 0;
 }

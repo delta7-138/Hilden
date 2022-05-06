@@ -1,0 +1,11 @@
+hif 4.0 + 5.0 [
+	hfloat u = 4.2;
+]
+hif 6.0 [
+	hfloat e = 3.3;
+]
+
+[
+	hfloat xyz= 6.9; 
+	hfloat g = 5.6 + xyz; 
+]

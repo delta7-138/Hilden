@@ -36,33 +36,52 @@ public:
 	int add_child(AST_Tree_Node* node);
 };
 
-class Variable{
+class Parser{
 public: 
-	std::string val; 
-	std::string type;
-	std::string name; 
+	std::queue<TokenType>fresh_tokens; // To store current tokens to get parsed
+	std::stack<TokenType>parsed_tokens; //To store the already parsed tokens in case we need them
+	AST_Tree_Node *root; //root of the AST
+
+	Parser(std::vector<TokenType>); 
+
+	//primary functions
+	TokenType get_next_tok(); //read queue front dequeue and push into parsed_tokens stack
+	TokenType get_cur_tok(); //read queue front and return do nothing else
+	void parse(); //recursively parse and return head
+
+	//Accessory functions
+	int get_precedence(std::string); 
+	AST_Tree_Node *parse_binary(std::vector<TokenType>); 
+	std::vector<TokenType>dequeue_and_return(std::string , bool); 
+	void print_ast(AST_Tree_Node* node, int depth); 
 }; 
 
-class Environment{
-public: 
-	int level; 
-	std::map<std::string , Variable *>var_map; 
-};
+// class Variable{
+// public: 
+// 	std::string val; 
+// 	std::string type;
+// 	std::string name; 
+// }; 
 
-class Function{
-public: 
-	std::vector<TokenType>prototype;
-	std::vector<TokenType>body; 
-	std::string return_type; 
-}; 
+// class Environment{
+// public: 
+// 	int level; 
+// 	std::map<std::string , Variable *>var_map; 
+// };
+
+// class Function{
+// public: 
+// 	std::vector<TokenType>prototype;
+// 	std::vector<TokenType>body; 
+// 	std::string return_type; 
+// }; 
 
 
 
 int get_precedence(std::string);
 float parse_primary(std::vector<TokenType>);
-AST_Tree_Node *parse_expression(AST_Tree_Node * , int);
+AST_Tree_Node *parse_expression(AST_Tree_Node *);
 AST_Tree_Node* parse_binary();
-void init_variable(TokenType , std::string val); 
 AST_Tree_Node *init_parse(std::vector<TokenType>tokenList);
 void print_ast(AST_Tree_Node* node, int);
 

@@ -1,12 +1,14 @@
 #include "lexer.h"
 
-std::string Identifier;  //for storing identifier names 
-double NumVal; //for storing token number in case of special tokens
+Lexer::Lexer(std::string source){
+    this->source = source; 
+}
 
-std::vector<TokenType> gettok(std::string source){
-    std::vector<TokenType>tokenList; //Splitting the source code into words separated by spaces
+std::vector<TokenType> Lexer::gettok(){
+     //Splitting the source code into words separated by spaces
     std::stringstream splitter(source);
     std::string word; 
+
     while(splitter>>word){
         std::string buffer = ""; 
         char c, la; 
@@ -20,51 +22,55 @@ std::vector<TokenType> gettok(std::string source){
                 if(buffer!=""){
                     tokenList.push_back(getNextToken(buffer)); 
                 }
-                if(c=='('){
-                    TokenType parentok; 
-                    parentok.token_number = tok_open_p; 
-                    parentok.token_val = "("; 
-                    tokenList.push_back(parentok);
-                }else if(c==')'){
-                    TokenType parentok; 
-                    parentok.token_number = tok_close_p; 
-                    parentok.token_val = ")";
-                    tokenList.push_back(parentok);
-                }else if(c=='['){
-                    TokenType blocktok; 
-                    blocktok.token_number = tok_open_b;
-                    blocktok.token_val = "[";
-                    tokenList.push_back(blocktok); 
-                }else if(c==']'){
-                    TokenType blocktok; 
-                    blocktok.token_number = tok_close_b;
-                    blocktok.token_val = "]";
-                    tokenList.push_back(blocktok); 
-                }else if(c==';'){
-                    TokenType septok; 
-                    septok.token_number = tok_sep; 
-                    septok.token_val = ";";
-                    tokenList.push_back(septok);
-                }else if(c=='=' || c=='!' || c=='>' || c=='<'){
-                    TokenType optok; 
-                    optok.token_number = tok_operator; 
-                    optok.token_val = "";
-                    optok.token_val+=c;
+                TokenType pushtok; 
+                switch(c){
+                    case '(': 
+                    pushtok.token_number = tok_open_p; 
+                    pushtok.token_val = "("; 
+                    break; 
+
+                    case ')': 
+                    pushtok.token_number = tok_close_p; 
+                    pushtok.token_val = ")";
+                    break; 
+
+                    case '[':
+                    pushtok.token_number = tok_open_b;
+                    pushtok.token_val = "[";
+                    break; 
+
+                    case ']':
+                    pushtok.token_number = tok_close_b;
+                    pushtok.token_val = "]";
+                    break; 
+
+                    case ';': 
+                    pushtok.token_number = tok_sep; 
+                    pushtok.token_val = ";";
+                    break;
+
+                    case '=':
+                    case '!': 
+                    case '>': 
+                    case '<': 
+                    pushtok.token_number = tok_operator; 
+                    pushtok.token_val = "";
+                    pushtok.token_val+=c;
                     if(i+1<len){
                         char la = word.at(i+1);
                         if(la=='='){
                             i++;
-                            optok.token_val+="=";
+                            pushtok.token_val+="=";
                         }
 
                     }
-                    tokenList.push_back(optok);
-                }else{
-                    TokenType optok; 
-                    optok.token_number = tok_operator; 
-                    optok.token_val = std::string(1 , c);
-                    tokenList.push_back(optok);
+                    break; 
+
+                    default: 
+                    pushtok.token_number = tok_operator; 
+                    pushtok.token_val = std::string(1 , c);
                 }
+                tokenList.push_back(pushtok);
                 buffer = "";
             }else{
                 buffer+=c; 
@@ -77,8 +83,8 @@ std::vector<TokenType> gettok(std::string source){
     return tokenList; 
 }
 
-bool isKeyword(std::string word){
-    if(word == "hfloat" || word == "hchar" || word == "hstring" || word == "hprint" || word == "hwhile" || word == "hif" || word=="hint" || word=="hdec" || word=="ret"){
+bool Lexer::isKeyword(std::string word){
+    if(word == "hfloat" || word == "hchar" || word == "hstring" || word == "hprint" || word == "hwhile" || word == "hif" || word == "hint" || word == "hdec" || word == "ret" || word == "helse"){
         return true;
     }
     return false; 
@@ -88,7 +94,7 @@ bool isKeyword(std::string word){
 Should only start with alphabet and succeed with alphanumeric characters only
 '_' is allowed
 */
-bool isIdentifier(std::string word){
+bool Lexer::isIdentifier(std::string word){
     char c = word.at(0); 
     if(!isAlphabet(c)){
         return false; 
@@ -110,7 +116,7 @@ Must have a decimal point(for now)
 Ex. : 3.0 2.0 4.0 1.0 1.34 , etc. are valid
       3, .34, 1. are invalid 
 */
-bool isIntegerLiteral(std::string word){
+bool Lexer::isIntegerLiteral(std::string word){
     char c = word.at(0); 
     int curr_state = 0; 
     int i = 0 , size = word.length(); 
@@ -130,7 +136,7 @@ bool isIntegerLiteral(std::string word){
     }
     return true; 
 }
-bool isFloatingLiteral(std::string word){
+bool Lexer::isFloatingLiteral(std::string word){
     char c = word.at(0); 
     int curr_state = 0;
     int i = 0, size = word.length(); 
@@ -173,7 +179,7 @@ bool isFloatingLiteral(std::string word){
 }
 
 /*TBD*/
-bool isStringLiteral(std::string word){
+bool Lexer::isStringLiteral(std::string word){
     char c = word.at(0);
     if(c!='"'){
         return false; 
@@ -181,7 +187,7 @@ bool isStringLiteral(std::string word){
     return true; 
 }
 
-bool isCharLiteral(std::string word){
+bool Lexer::isCharLiteral(std::string word){
     char c = word.at(0);
     int curr_state = 0; 
     int i = 0, size = word.length(); 
@@ -215,25 +221,25 @@ bool isCharLiteral(std::string word){
     return false;
 }
 
-bool isAlphabet(char c){
+bool Lexer::isAlphabet(char c){
     if(c>='A' && c<='Z' || c>='a' && c<='z'){
         return true;
     }
     return false; 
 }
 
-bool isDigit(char c){
+bool Lexer::isDigit(char c){
     if(c>='0' && c<='9'){
         return true;
     }
     return false; 
 }
 
-bool isAlphanumeric(char c){
+bool Lexer::isAlphanumeric(char c){
     return (isDigit(c) || isAlphabet(c));
 }
 
-TokenType getNextToken(std::string buffer){
+TokenType Lexer::getNextToken(std::string buffer){
     TokenType tok;
     tok.token_val = buffer; 
     if(isKeyword(buffer)){
@@ -254,3 +260,9 @@ TokenType getNextToken(std::string buffer){
     return tok; 
 }
 
+void Lexer::print_token_list(){
+    for(int i = 0; i<tokenList.size(); i++){
+        tokenList[i].print(); 
+        std::cout<<std::endl; 
+    }
+}

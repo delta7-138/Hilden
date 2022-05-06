@@ -278,9 +278,6 @@ void Parser::parse(){
 		}
 	}
 	//fresh_tokens.front().print(); 
-	if(!ifflag){ 
-		get_next_tok(); 
-	}
 	parse(); 
 }
 

@@ -8,14 +8,6 @@ std::vector<TokenType> gettok(std::string source){
     std::stringstream splitter(source);
     std::string word; 
     while(splitter>>word){
-        
-        if(isKeyword(word)){
-            TokenType tok; 
-            tok.token_number = tok_keyword;
-            tok.token_val = word; 
-            tokenList.push_back(tok); 
-            continue;
-        }
         std::string buffer = ""; 
         char c, la; 
         int len = word.length(); 
@@ -118,7 +110,27 @@ Must have a decimal point(for now)
 Ex. : 3.0 2.0 4.0 1.0 1.34 , etc. are valid
       3, .34, 1. are invalid 
 */
-bool isNumeric(std::string word){
+bool isIntegerLiteral(std::string word){
+    char c = word.at(0); 
+    int curr_state = 0; 
+    int i = 0 , size = word.length(); 
+    while(i<size){
+        char c = word.at(i); 
+        switch(curr_state){
+            case 0: 
+            if(!isDigit(c)){
+                curr_state = -1; //forever in dead state 
+            }
+            break; 
+        }
+        i++; 
+    }
+    if(curr_state==-1){
+        return false; 
+    }
+    return true; 
+}
+bool isFloatingLiteral(std::string word){
     char c = word.at(0); 
     int curr_state = 0;
     int i = 0, size = word.length(); 
@@ -224,9 +236,13 @@ bool isAlphanumeric(char c){
 TokenType getNextToken(std::string buffer){
     TokenType tok;
     tok.token_val = buffer; 
-    if(isIdentifier(buffer)){
+    if(isKeyword(buffer)){
+        tok.token_number = tok_keyword; 
+    }else if(isIdentifier(buffer)){
         tok.token_number = tok_id;
-    }else if(isNumeric(buffer)){
+    }else if(isIntegerLiteral(buffer)){
+        tok.token_number = tok_hint;
+    }else if(isFloatingLiteral(buffer)){
         tok.token_number = tok_hfloat;
     }else if(isStringLiteral(buffer)){
         tok.token_number = tok_hstring; 

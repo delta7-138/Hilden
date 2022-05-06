@@ -24,7 +24,7 @@ class TokenType {
     std::string token_val; 
 
     void print(){
-        std::cout << "<" << token_number <<" : " << token_val << ">"; 
+        std::cout << "<" << token_number <<" : " << token_val << ">";
     }
 }; 
 

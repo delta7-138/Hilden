@@ -17,9 +17,9 @@ int main(int argc , char *argv[]){
 		data = ss.str(); 
 	}
 	std::vector<TokenType>tList = gettok(data);
-	// for(int i = 0; i<tList.size(); i++){
-	//       tList[i].print();
-	// }
+	for(int i = 0; i<tList.size(); i++){
+	      tList[i].print();
+	}
 	
 	print_ast(parse_expression(init_parse(tList) , tList.size()) , 0); 
 	return 0;

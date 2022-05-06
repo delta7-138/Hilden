@@ -133,7 +133,7 @@ AST_Tree_Node* parse_binary(){
 		TokenType tmp = tList[i]; 
 		int token_number = tmp.token_number; 
 		std::string token_value = tmp.token_val;
-		if(token_number==tok_hfloat || token_number==tok_id){
+		if(token_number==tok_hfloat || token_number==tok_id || token_number==tok_hchar || token_number==tok_hint){
 			output_q.push_back(tmp);
 		} else if(token_number == tok_operator){
 			while(!op_stack.empty()){

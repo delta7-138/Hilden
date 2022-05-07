@@ -12,3 +12,13 @@ hif 6.0 [
 
 hfloat z = 4.5; 
 
+hfloat func1(hfloat a , hint b , hchar c)[
+	hfloat x = a - b + c; 
+	ret (x + 5.6 * 4.7);
+
+	hfloat abc = 4.56; 
+	ret abc; 
+]
+
+
+

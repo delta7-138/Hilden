@@ -21,7 +21,7 @@ int main(int argc , char *argv[]){
 	lexer->print_token_list(); 
 	std::cout<<std::endl;
 
-	Parser *parser = new Parser(tList); 
+	Parser *parser = new Parser(tList , "E"); 
 	parser->parse(); 
 	parser->print_ast(parser->root , 0); 
 	return 0;

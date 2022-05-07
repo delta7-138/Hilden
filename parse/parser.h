@@ -42,7 +42,7 @@ public:
 	std::stack<TokenType>parsed_tokens; //To store the already parsed tokens in case we need them
 	AST_Tree_Node *root; //root of the AST
 
-	Parser(std::vector<TokenType>); 
+	Parser(std::vector<TokenType> , std::string); 
 
 	//primary functions
 	TokenType get_next_tok(); //read queue front dequeue and push into parsed_tokens stack
@@ -52,7 +52,7 @@ public:
 	//Accessory functions
 	int get_precedence(std::string); 
 	AST_Tree_Node *parse_binary(std::vector<TokenType>); 
-	std::vector<TokenType>dequeue_and_return(std::string , bool); 
+	std::vector<TokenType>dequeue_and_return(std::string); 
 	void print_ast(AST_Tree_Node* node, int depth); 
 }; 
 

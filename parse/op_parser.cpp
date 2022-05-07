@@ -44,9 +44,9 @@ void Parser::print_ast(AST_Tree_Node* node, int depth=0){
 	}
 }
 
-Parser::Parser(std::vector<TokenType>tList){
+Parser::Parser(std::vector<TokenType>tList , std::string start_val){
 	TokenType start; 
-	start.token_val = "E";
+	start.token_val = start_val; 
 	start.token_number = tok_undef; //For denotation only
 	root = new AST_Tree_Node(start);
 	for(int i = 0; i<tList.size(); i++){
@@ -177,7 +177,7 @@ AST_Tree_Node * Parser::parse_binary(std::vector<TokenType>tList){
 	return ast;
 }
 
-std::vector<TokenType> Parser::dequeue_and_return(std::string sep , bool flag){
+std::vector<TokenType> Parser::dequeue_and_return(std::string sep){
 	std::vector<TokenType>ans; 
 	//std::cout<<"Dequeuee"<<std::endl;
 	while(true){
@@ -231,24 +231,52 @@ void Parser::parse(){
 				assignnode = new AST_Tree_Node(la2); 
 				assignnode->add_child(new AST_Tree_Node(la1));
 				get_next_tok(); 
-				std::vector<TokenType>stmt = dequeue_and_return(";" , false); 
+				std::vector<TokenType>stmt = dequeue_and_return(";"); 
 				AST_Tree_Node *stmtnode = parse_binary(stmt);
 				assignnode->add_child(stmtnode); //dequeue and return will end at separator mentioned and return the list of tokens till it reaches the end
 				assign = true; 
 
 			}else if(la2.token_val == "("){
 
+				newnode = new AST_Tree_Node(curtok); 
+				newnode->add_child(new AST_Tree_Node(la1));
+
+				//iterating till ) <htype> fid( <htype> a , <htype> b ,  <htypr> c , ... );
+				//function definition 
+				get_next_tok(); 
+				std::vector<TokenType>typeList = dequeue_and_return("["); 
+
+				//getting param list
+
+				for(int i = 0; i<typeList.size()-1; i+=3){
+
+					AST_Tree_Node *param_type_node = new AST_Tree_Node(typeList[i]); 
+					param_type_node->add_child(new AST_Tree_Node(typeList[i+1]));
+
+					newnode->add_child(param_type_node); 
+				}
+
+				Parser *function_body_parser = new Parser(dequeue_and_return("]") , "FB");
+				function_body_parser->parse(); 
+				newnode->add_child(function_body_parser->root); //adding body of function definition
 			}
 
 		}else if(curtok.token_val == "hif"){
 
 			newnode = new AST_Tree_Node(curtok);
-			newnode->add_child(parse_binary(dequeue_and_return("[" , true)));
+			newnode->add_child(parse_binary(dequeue_and_return("[")));
 			//get_cur_tok().print(); 
-			Parser * parse_body_1 = new Parser(dequeue_and_return("]" , false));
+			Parser * parse_body_1 = new Parser(dequeue_and_return("]") , "E");
 			parse_body_1->parse(); 
 			newnode->add_child(parse_body_1->root); 
 			ifflag = true; 
+
+		}else if(curtok.token_val == "ret"){
+
+			newnode = new AST_Tree_Node(curtok); 
+			get_next_tok(); 
+			newnode->add_child(parse_binary(dequeue_and_return(";"))); 
+			dequeue_and_return("]"); 
 		}
 
 
@@ -260,13 +288,13 @@ void Parser::parse(){
 		if(la.token_val == "="){
 			newnode->add_child(new AST_Tree_Node(curtok));
 			get_next_tok();
-			newnode->add_child(parse_binary(dequeue_and_return(";" , false)));
+			newnode->add_child(parse_binary(dequeue_and_return(";")));
 		}
 
 	}else if(curtok.token_number == tok_open_b){
 
 		get_next_tok(); 
-		Parser * parse_body = new Parser(dequeue_and_return("]" , false));
+		Parser * parse_body = new Parser(dequeue_and_return("]") ,"E");
 		parse_body->parse();
 		newnode = parse_body->root;
 	}

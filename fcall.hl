@@ -1,0 +1,5 @@
+hint func1(hint a , hint b , hint c)[
+	ret a + b + c; 
+]
+
+hint x = func1{ func1{ func1 {4 , 5 , 6} , 4 , 5} , 4 , 5}; 

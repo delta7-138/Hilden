@@ -20,5 +20,11 @@ hfloat func1(hfloat a , hint b , hchar c)[
 	ret abc; 
 ]
 
+hfloat x = 4.5; 
 
-
+[
+	hfloat x = 4.5; 
+	[
+		hfloat g = 5.6; 
+	]
+]

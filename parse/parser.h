@@ -52,7 +52,7 @@ public:
 	//Accessory functions
 	int get_precedence(std::string); 
 	AST_Tree_Node *parse_binary(std::vector<TokenType>); 
-	std::vector<TokenType>dequeue_and_return(std::string); 
+	std::vector<TokenType>dequeue_and_return(std::string , std::string , bool); 
 	void print_ast(AST_Tree_Node* node, int depth); 
 }; 
 

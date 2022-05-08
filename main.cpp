@@ -12,7 +12,7 @@ int main(int argc , char *argv[]){
 	std::ifstream infile(argv[1]);
 	std::string data; 
 	if(infile){
-		std::ostringstream ss; 
+		std::ostringstream ss;   
 		ss<<infile.rdbuf(); 
 		data = ss.str(); 
 	}

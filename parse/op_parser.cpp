@@ -19,6 +19,18 @@ int AST_Tree_Node :: add_child(AST_Tree_Node* node)
 	return 0;
 }
 
+std::vector<TokenType>getListTill(std::vector<TokenType>list , std::string delim){
+
+	std::vector<TokenType>tList; 
+	for(int i = 0; i<list.size() ; i++){
+		if(tList[i].token_val == delim){
+			return tList;
+		}
+		tList.push_back(tList[i]);
+	}
+	return tList; 
+}
+
 int Parser::get_precedence(std::string tokval){
 	if(tokval=="+" || tokval=="-"){
 		return ADD_PREC; 
@@ -83,45 +95,104 @@ TokenType Parser::get_cur_tok(){
 
 
 AST_Tree_Node * Parser::parse_binary(std::vector<TokenType>tList){
-	std::vector<TokenType>output_q; //output queue to store the RPN representation
-	std::stack<TokenType>op_stack; //operator stack to store the operators 
+
+	std::vector<AST_Tree_Node *> unparsed_AST; //partially parsed list 
+	//first off convert all Tokens to AST Nodes to make parsing easier for function calls
+	for(int i = 0; i<tList.size() ; i++){
+
+		TokenType cur = tList[i];
+		TokenType la; 
+
+		if( i+1 < tList.size() ){
+			la =tList[i+1]; 
+		}
+
+		if(la.token_number == tok_open_c){ //function call is happening 
+
+			AST_Tree_Node * fcallnode = new AST_Tree_Node(cur); //fid token to be parent 
+			i+=2; //go to lookahead then go to the first token of the first argument 
+			while(i<tList.size() && tList[i].token_number != tok_close_c){
+				int ctr = 0; 
+				std::vector<TokenType>arg; 
+
+				while(i<tList.size()){
+
+					if(tList[i].token_number == tok_open_c){
+						ctr++; 
+					}else if(tList[i].token_number == tok_close_c){
+						ctr--; 
+					}
+
+					if(ctr == 0 && tList[i].token_number == tok_coma){
+						break;
+					} 
+					arg.push_back(tList[i]); 
+					i++; 
+				}
+
+				fcallnode->add_child(parse_binary(arg)); 
+				i++; 
+			}
+			unparsed_AST.push_back(fcallnode); 
+
+		}else{
+
+			unparsed_AST.push_back(new AST_Tree_Node(cur)); 
+		}
+	}
+
+	std::vector<AST_Tree_Node *>output_q; //output queue to store the RPN representation
+	std::stack<AST_Tree_Node *>op_stack; //operator stack to store the operators 
 
 	int prev_tok_number = 1000;
 
-	for(int i = 0; i<tList.size();  i++){
+	//Shunting yard algorithm to parse 
 
-		TokenType tmp = tList[i]; 
-		int token_number = tmp.token_number; 
-		std::string token_value = tmp.token_val;
+	for(int i = 0; i < unparsed_AST.size();  i++){
+
+		AST_Tree_Node *curr = unparsed_AST[i]; 
+		TokenType *curtok = curr->tok; 
+
+		int token_number = curtok->token_number; 
+		std::string token_value = curtok->token_val;
 
 		if(token_number==tok_hfloat || token_number==tok_id || token_number==tok_hchar || token_number==tok_hint){
-			output_q.push_back(tmp);
+
+			output_q.push_back(curr);
+
 		}else if(token_number == tok_operator){
+
 			while(!op_stack.empty()){
-				int prec_top = get_precedence(op_stack.top().token_val);
+				int prec_top = get_precedence(op_stack.top()->tok->token_val);
 				int prec_curr_tok = get_precedence(token_value); 
+
 				if(prec_curr_tok >= prec_top){
 					break; 
 				}
-				TokenType top = op_stack.top(); 
+
+				AST_Tree_Node *top = op_stack.top(); 
 				op_stack.pop(); 
 				output_q.push_back(top);
 			}
-			op_stack.push(tmp); 
-		}else if(token_number == tok_open_p) op_stack.push(tmp);
+			op_stack.push(curr); 
+
+		}else if(token_number == tok_open_p) op_stack.push(curr);
+
 		else if(token_number == tok_close_p){
+
 			while(!op_stack.empty()){
 
-				if(op_stack.top().token_val == "("){
+				if(op_stack.top()->tok->token_val == "("){
 					op_stack.pop(); 
 					break; 
 				}
 
-				TokenType top = op_stack.top(); 
+				AST_Tree_Node * top = op_stack.top(); 
 				op_stack.pop(); 
 				output_q.push_back(top);
 			}
 		}
+
 		if((prev_tok_number==tok_hfloat || prev_tok_number==tok_id) && (token_number==tok_hfloat || token_number==tok_id)){
 			perror("Syntax Error!");
 			exit(0);
@@ -132,43 +203,52 @@ AST_Tree_Node * Parser::parse_binary(std::vector<TokenType>tList){
 			perror("Syntax Error!");
 			exit(0);
 		}
+
 		prev_tok_number = token_number; 
 	}
+
 	while(!op_stack.empty()){
-		if(op_stack.top().token_number!=tok_open_p){
+
+		if(op_stack.top()->tok->token_number!=tok_open_p){
 			output_q.push_back(op_stack.top());
 			op_stack.pop();
 		}
+
 	}
+
+
 	
 	std::stack<AST_Tree_Node*>parse_stack;
-	for(int i = 0; i<output_q.size(); i++){
-		TokenType tok = output_q[i]; 
 
-		if(tok.token_number==tok_hfloat || tok.token_number==tok_id){
-			AST_Tree_Node* ast = new AST_Tree_Node(tok);
-			ast->eval_tok = new TokenType(tok);
-			parse_stack.push(ast);
-		} else if(tok.token_number == tok_operator){
+	for(int i = 0; i<output_q.size(); i++){
+
+		AST_Tree_Node *curnode = output_q[i]; 
+		TokenType *tok = curnode->tok;
+
+		if(tok->token_number==tok_hfloat || tok->token_number==tok_id || tok->token_number == tok_hint || tok->token_number == tok_hchar){
+
+			parse_stack.push(curnode); 
+
+		} else if(tok->token_number == tok_operator){
+
 			AST_Tree_Node* rhs_Node = parse_stack.top();
 			parse_stack.pop();
+
 			if(parse_stack.empty()){
 				// return std::stof(rhs_Node->tok->token_val); 
 				return rhs_Node;
 			}
+
 			AST_Tree_Node* lhs_Node = parse_stack.top();
 			parse_stack.pop();
 			// float ans = get_ans(std::stof(lhs_Node->eval_tok->token_val), tok.token_val, std::stof(rhs_Node->eval_tok->token_val));
-			TokenType tok_ans;
-			tok_ans.token_number = tok_hfloat;
-			tok_ans.token_val = "0.0"; 
-			AST_Tree_Node* ast = new AST_Tree_Node(tok);
-			ast->eval_tok = new TokenType(tok_ans);
-			ast->add_child(lhs_Node);
-			ast->add_child(rhs_Node);
-			parse_stack.push(ast); 
+		
+			curnode->add_child(lhs_Node);
+			curnode->add_child(rhs_Node);
+			parse_stack.push(curnode); 
 		}
 	}
+
 	AST_Tree_Node* ast = parse_stack.top();
 	parse_stack.pop();
 	// print_ast(ast);
@@ -177,17 +257,31 @@ AST_Tree_Node * Parser::parse_binary(std::vector<TokenType>tList){
 	return ast;
 }
 
-std::vector<TokenType> Parser::dequeue_and_return(std::string sep){
+std::vector<TokenType> Parser::dequeue_and_return(std::string sep , std::string op , bool flag = false){
 	std::vector<TokenType>ans; 
+	std::stack<int>param; 
+
+	if(flag){
+		param.push(1);
+	}
 	//std::cout<<"Dequeuee"<<std::endl;
 	while(true){
 		TokenType curtok = get_cur_tok(); 
 		if(curtok.token_val == "dummy"){
 			break; 
 		}
+
+		if(flag  && curtok.token_val == op){
+			param.push(1); 
+		}
+
 		get_next_tok(); 
 		if(curtok.token_val == sep){ //if you reach the end terminate and return list
-			break;  
+			if(flag){
+				param.pop();
+			}
+			if(param.empty())
+				break;  
 		}
 		//curtok.print(); std::cout<<std::endl; 
 		//curtok.print(); 
@@ -231,7 +325,7 @@ void Parser::parse(){
 				assignnode = new AST_Tree_Node(la2); 
 				assignnode->add_child(new AST_Tree_Node(la1));
 				get_next_tok(); 
-				std::vector<TokenType>stmt = dequeue_and_return(";"); 
+				std::vector<TokenType>stmt = dequeue_and_return(";" , "" , false); 
 				AST_Tree_Node *stmtnode = parse_binary(stmt);
 				assignnode->add_child(stmtnode); //dequeue and return will end at separator mentioned and return the list of tokens till it reaches the end
 				assign = true; 
@@ -244,7 +338,7 @@ void Parser::parse(){
 				//iterating till ) <htype> fid( <htype> a , <htype> b ,  <htypr> c , ... );
 				//function definition 
 				get_next_tok(); 
-				std::vector<TokenType>typeList = dequeue_and_return("["); 
+				std::vector<TokenType>typeList = dequeue_and_return("[" , "" , false); 
 
 				//getting param list
 
@@ -256,7 +350,7 @@ void Parser::parse(){
 					newnode->add_child(param_type_node); 
 				}
 
-				Parser *function_body_parser = new Parser(dequeue_and_return("]") , "FB");
+				Parser *function_body_parser = new Parser(dequeue_and_return("]" , "[" , true) , "FB");
 				function_body_parser->parse(); 
 				newnode->add_child(function_body_parser->root); //adding body of function definition
 			}
@@ -264,9 +358,9 @@ void Parser::parse(){
 		}else if(curtok.token_val == "hif"){
 
 			newnode = new AST_Tree_Node(curtok);
-			newnode->add_child(parse_binary(dequeue_and_return("[")));
+			newnode->add_child(parse_binary(dequeue_and_return("[" , "" , false)));
 			//get_cur_tok().print(); 
-			Parser * parse_body_1 = new Parser(dequeue_and_return("]") , "E");
+			Parser * parse_body_1 = new Parser(dequeue_and_return("]" , "[" , true) , "E");
 			parse_body_1->parse(); 
 			newnode->add_child(parse_body_1->root); 
 			ifflag = true; 
@@ -275,8 +369,8 @@ void Parser::parse(){
 
 			newnode = new AST_Tree_Node(curtok); 
 			get_next_tok(); 
-			newnode->add_child(parse_binary(dequeue_and_return(";"))); 
-			dequeue_and_return("]"); 
+			newnode->add_child(parse_binary(dequeue_and_return(";" , "" , false))); 
+			//dequeue_and_return("]" , "" , false); 
 		}
 
 
@@ -288,13 +382,13 @@ void Parser::parse(){
 		if(la.token_val == "="){
 			newnode->add_child(new AST_Tree_Node(curtok));
 			get_next_tok();
-			newnode->add_child(parse_binary(dequeue_and_return(";")));
+			newnode->add_child(parse_binary(dequeue_and_return(";" , "" , false)));
 		}
 
 	}else if(curtok.token_number == tok_open_b){
 
 		get_next_tok(); 
-		Parser * parse_body = new Parser(dequeue_and_return("]") ,"E");
+		Parser * parse_body = new Parser(dequeue_and_return("]" , "[" , true) ,"E");
 		parse_body->parse();
 		newnode = parse_body->root;
 	}

@@ -18,7 +18,7 @@ std::vector<TokenType> Lexer::gettok(){
             c = word.at(i);
             //std::cout<<c<<std::endl;
             //std::cout<<i<<","<<len<<std::endl; 
-            if(c=='+' || c=='-' || c=='*' || c=='/' || c=='=' || c=='(' || c==')' || c==';' || c=='!' || c=='>' || c=='<' || c=='[' || c==']'){
+            if(c=='+' || c=='-' || c=='*' || c=='/' || c=='=' || c=='(' || c==')' || c==';' || c=='!' || c=='>' || c=='<' || c=='[' || c==']' || c=='{' || c == '}' || c == ','){
                 if(buffer!=""){
                     tokenList.push_back(getNextToken(buffer)); 
                 }
@@ -44,10 +44,25 @@ std::vector<TokenType> Lexer::gettok(){
                     pushtok.token_val = "]";
                     break; 
 
+                    case '{':
+                    pushtok.token_number = tok_open_c; 
+                    pushtok.token_val = "{"; 
+                    break; 
+
+                    case '}': 
+                    pushtok.token_number = tok_close_c; 
+                    pushtok.token_val = "}"; 
+                    break; 
+
                     case ';': 
                     pushtok.token_number = tok_sep; 
                     pushtok.token_val = ";";
                     break;
+
+                    case ',': 
+                    pushtok.token_number = tok_coma; 
+                    pushtok.token_val = ","; 
+                    break; 
 
                     case '=':
                     case '!': 

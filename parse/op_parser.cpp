@@ -93,6 +93,32 @@ TokenType Parser::get_cur_tok(){
 	return dummy; 
 }
 
+AST_Tree_Node * Parser::parse_function(std::vector<TokenType>tList){
+
+	AST_Tree_Node *fcallnode = new AST_Tree_Node(tList[0]);
+	int ctr = 0; 
+	for(int i = 2; i<tList.size(); i++){
+
+		std::vector<TokenType>arg; 
+		while(i<tList.size()){
+
+			if(tList[i].token_number == tok_open_c){
+				ctr++; 
+			}else if(tList[i].token_number == tok_close_c){
+				ctr--; 
+			}
+
+			if(ctr == 0 && i+1<tList.size() && tList[i].token_number == tok_coma){
+				break; 
+			}
+			arg.push_back(tList[i]); 
+			i++; 
+		}
+
+		fcallnode->add_child(parse_binary(arg));
+	}
+	return fcallnode; 
+}
 
 AST_Tree_Node * Parser::parse_binary(std::vector<TokenType>tList){
 
@@ -108,33 +134,22 @@ AST_Tree_Node * Parser::parse_binary(std::vector<TokenType>tList){
 		}
 
 		if(la.token_number == tok_open_c){ //function call is happening 
+			std::vector<TokenType>functionCall; 
+			int ctr = 0; 
 
-			AST_Tree_Node * fcallnode = new AST_Tree_Node(cur); //fid token to be parent 
-			i+=2; //go to lookahead then go to the first token of the first argument 
-			while(i<tList.size() && tList[i].token_number != tok_close_c){
-				int ctr = 0; 
-				std::vector<TokenType>arg; 
-
-				while(i<tList.size()){
-
-					if(tList[i].token_number == tok_open_c){
-						ctr++; 
-					}else if(tList[i].token_number == tok_close_c){
-						ctr--; 
+			while(i<tList.size()){
+				if(tList[i].token_number == tok_open_c){
+					ctr++; 
+				}else if(tList[i].token_number == tok_close_c){
+					ctr--; 
+					if( ctr == 0 ){
+						break; 
 					}
-
-					if(ctr == 0 && tList[i].token_number == tok_coma){
-						break;
-					} 
-					arg.push_back(tList[i]); 
-					i++; 
 				}
-
-				fcallnode->add_child(parse_binary(arg)); 
+				functionCall.push_back(tList[i]);
 				i++; 
 			}
-			unparsed_AST.push_back(fcallnode); 
-
+			unparsed_AST.push_back(parse_function(functionCall)); 
 		}else{
 
 			unparsed_AST.push_back(new AST_Tree_Node(cur)); 

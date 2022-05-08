@@ -28,3 +28,5 @@ hfloat x = 4.5;
 		hfloat g = 5.6; 
 	]
 ]
+
+hfloat x = hfunc1{4.5 , 69 , 'c'}; 

@@ -343,7 +343,7 @@ void Parser::parse(){
 						exit(0); 
 				}
 				newnode = new AST_Tree_Node(curtok , "DEC"); 
-				newnode->add_child(new AST_Tree_Node(la1)); 
+				newnode->add_child(new AST_Tree_Node(la1 , "ID")); 
 				get_next_tok(); 
 
 			}else if(la2.token_val == "="){ //<htype> <id> = <expr>; 
@@ -398,12 +398,15 @@ void Parser::parse(){
 			newnode->add_child(parse_body_1->root); 
 			ifflag = true; 
 
+			//get_cur_tok().print(); 
 			// If there is an else clause to this if clause
 			if (get_cur_tok().token_val == "helse"){
+				std::cout<<"in"; 
 				// Add as a third child to the if node
 				get_next_tok(); 
 				get_next_tok(); 
-				std::vector<TokenType>tList = dequeue_and_return("]", "[", true); 
+				//std::vector<TokenType>tList = dequeue_and_return("]", "[", true); 
+				//get_cur_tok().print(); 
 
 				Parser * parse_else = new Parser(dequeue_and_return("]", "[", true), "E");
 				parse_else->parse();
@@ -417,6 +420,19 @@ void Parser::parse(){
 			get_next_tok(); 
 			newnode->add_child(parse_binary(dequeue_and_return(";" , "" , false))); 
 			//dequeue_and_return("]" , "" , false); 
+		}else if(curtok.token_val == "hprint" || curtok.token_val == "hprintln"){
+
+			newnode = new AST_Tree_Node(curtok , "PRNT"); 
+			get_next_tok(); 
+			newnode->add_child(parse_binary(dequeue_and_return(";" , "" , false))); 
+
+		}else if(curtok.token_val == "hwhile"){
+			
+			newnode = new AST_Tree_Node(curtok , "WHILE"); 
+			newnode->add_child(parse_binary(dequeue_and_return("[" , "" , false)));
+			Parser * parse_body_1 = new Parser(dequeue_and_return("]" , "[" , true) , "E");
+			parse_body_1->parse(); 
+			newnode->add_child(parse_body_1->root); 
 		}
 
 

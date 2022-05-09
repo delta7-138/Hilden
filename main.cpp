@@ -20,21 +20,21 @@ int main(int argc , char *argv[]){
 	}
 	Lexer *lexer = new Lexer(data); 
 	std::vector<TokenType>tList = lexer->gettok(); 
-	lexer->print_token_list(); 
-	std::cout<<std::endl;
+	//lexer->print_token_list(); 
+	//std::cout<<std::endl;
 
 	Parser *parser = new Parser(tList , "E"); 
 	parser->parse(); 
-	parser->print_ast(parser->root , 0); 
+	//parser->print_ast(parser->root , 0); 
 
 	Environment *env = new Environment(parser->root , 0);  
 	TypeObject *retval = env->eval(); 
 
-	if(retval->type == 0){
-		std::cout<<retval->val<<std::endl; 
-		exit(0); 
-	}
-	env->print_var_table(); 
-	env->print_func_table(); 
+	// if(retval->type == 0){
+	// 	std::cout<<retval->val<<std::endl; 
+	// 	exit(0); 
+	// }
+	// env->print_var_table(); 
+	// env->print_func_table(); 
 	return 0;
 }

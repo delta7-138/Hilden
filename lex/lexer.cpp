@@ -99,7 +99,7 @@ std::vector<TokenType> Lexer::gettok(){
 }
 
 bool Lexer::isKeyword(std::string word){
-    if(word == "hfloat" || word == "hchar" || word == "hstring" || word == "hprint" || word == "hwhile" || word == "hif" || word == "hint" || word == "hdec" || word == "ret" || word == "helse"){
+    if(word == "hfloat" || word == "hchar" || word == "hstring" || word == "hprint" || word == "hprintln"|| word == "hwhile" || word == "hif" || word == "hint" || word == "hdec" || word == "ret" || word == "helse"){
         return true;
     }
     return false; 

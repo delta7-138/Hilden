@@ -347,8 +347,32 @@ TypeObject * Environment::eval(){
 			}
 
 		}else if(root->node_type == "RET"){ //returning in function body
+
 			TypeObject *retobj =  typecheck_and_eval(root->childList[0]); 
 			return retobj; 
+
+		}else if(root->node_type == "PRNT"){
+
+			TypeObject *printobj = typecheck_and_eval(root->childList[0]); 
+			std::cout<<printobj->val; 
+			if(root->tok->token_val == "hprintln"){
+				std::cout<<std::endl;
+			}
+
+		}else if(root->node_type == "WHILE"){
+			while(true){
+
+				TypeObject *cond = typecheck_and_eval(root->childList[0]);
+				if(cond->val == "1" || cond->val == "1.0"){ 
+					Environment *ifblock = new Environment(root->childList[1] , variable_table , function_table , level + 1); 
+					TypeObject *typeobj = ifblock->eval(); 
+					if(typeobj->type != 222){
+						return typeobj; 
+					}
+				}else{
+					break; 
+				}
+			}
 		}
 	}
 	return new TypeObject(222 , "success"); 

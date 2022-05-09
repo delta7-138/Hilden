@@ -27,7 +27,8 @@ hint is_odd(hint x)[
     ret is_even{x-1}; 
 ]
 
-
+hprintln is_odd{7}; 
+hprintln is_odd{12}; 
 
 hint fact(hint n)[
     hint i = 1;
@@ -41,15 +42,7 @@ hint fact(hint n)[
     ret ans; 
 ]
 
-[
-    hfloat a = 5.6; 
-    hfloat func(hfloat a)[ 
-        ret a  * 69; 
-    ]
 
-    hprintln func{a}; 
-]
 
-hprintln func{3}; 
 
 

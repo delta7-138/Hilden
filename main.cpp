@@ -1,6 +1,8 @@
 #include "parse/parser.h"
 #include "lex/lexer.h"
 #include "lex/token.h"
+#include "semantics/environment.h"
+#include "semantics/meta.h"
 #include <fstream>
 #include <iostream>
 
@@ -24,5 +26,14 @@ int main(int argc , char *argv[]){
 	Parser *parser = new Parser(tList , "E"); 
 	parser->parse(); 
 	parser->print_ast(parser->root , 0); 
+
+	Environment *env = new Environment(parser->root , 0);  
+	TypeObject *retval = env->eval(); 
+
+	if(retval->type == 0){
+		std::cout<<retval->val<<std::endl; 
+		exit(0); 
+	}
+	env->print_var_table(); 
 	return 0;
 }

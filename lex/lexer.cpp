@@ -90,7 +90,7 @@ std::vector<TokenType> Lexer::gettok(){
             }else{
                 buffer+=c; 
             }
-        } //push the remaining buffer to a token
+        } //push the remaining buffer to a token id+67
         if(buffer!=""){
             tokenList.push_back(getNextToken(buffer));
         }
@@ -257,6 +257,7 @@ bool Lexer::isAlphanumeric(char c){
 TokenType Lexer::getNextToken(std::string buffer){
     TokenType tok;
     tok.token_val = buffer; 
+    
     if(isKeyword(buffer)){
         tok.token_number = tok_keyword; 
     }else if(isIdentifier(buffer)){

@@ -28,10 +28,10 @@ class AST_Tree_Node
 public:
 	TokenType* tok; 
 	TokenType* eval_tok;
-	int node_type;
+	std::string node_type;
 	std::vector<AST_Tree_Node *>childList;
  	AST_Tree_Node(TokenType tok);
- 	AST_Tree_Node(TokenType tok, int node_type);
+ 	AST_Tree_Node(TokenType tok, std::string node_type);
 	AST_Tree_Node();
 	int add_child(AST_Tree_Node* node);
 };

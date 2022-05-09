@@ -4,10 +4,10 @@
 AST_Tree_Node :: AST_Tree_Node(TokenType tok)
 {
 	this->tok = new TokenType(tok);
-	this->node_type = n_binary;
+	this->node_type = ""; 
 }
 
-AST_Tree_Node :: AST_Tree_Node(TokenType tok, int node_type)
+AST_Tree_Node :: AST_Tree_Node(TokenType tok, std::string node_type)
 {
 	this->tok = new TokenType(tok);
 	this->node_type = node_type;
@@ -60,7 +60,7 @@ Parser::Parser(std::vector<TokenType>tList , std::string start_val){
 	TokenType start; 
 	start.token_val = start_val; 
 	start.token_number = tok_undef; //For denotation only
-	root = new AST_Tree_Node(start);
+	root = new AST_Tree_Node(start , "B");
 	for(int i = 0; i<tList.size(); i++){
 		fresh_tokens.push(tList[i]); 
 	}
@@ -95,7 +95,7 @@ TokenType Parser::get_cur_tok(){
 
 AST_Tree_Node * Parser::parse_function(std::vector<TokenType>tList){
 
-	AST_Tree_Node *fcallnode = new AST_Tree_Node(tList[0]);
+	AST_Tree_Node *fcallnode = new AST_Tree_Node(tList[0] , "FCALL");
 	int ctr = 0; 
 	for(int i = 2; i<tList.size(); i++){
 
@@ -151,8 +151,16 @@ AST_Tree_Node * Parser::parse_binary(std::vector<TokenType>tList){
 			}
 			unparsed_AST.push_back(parse_function(functionCall)); 
 		}else{
+			std::string type = "";
+			if(cur.token_number == tok_operator){
+				type = "OP";
+			}else if(cur.token_number == tok_id){
+				type = "ID"; 
+			}else{
+				type = "LIT"; 
+			}
 
-			unparsed_AST.push_back(new AST_Tree_Node(cur)); 
+			unparsed_AST.push_back(new AST_Tree_Node(cur , type)); 
 		}
 	}
 
@@ -330,15 +338,20 @@ void Parser::parse(){
 
 			if(la2.token_number == tok_sep){ //<htype> <id>; only declaration
 
-				newnode = new AST_Tree_Node(curtok); 
+				if(curtok.token_val != "hfloat" && curtok.token_val != "hint" && curtok.token_val != "hchar"){
+						perror("Syntax Error!"); 
+						exit(0); 
+				}
+				newnode = new AST_Tree_Node(curtok , "DEC"); 
 				newnode->add_child(new AST_Tree_Node(la1)); 
+				get_next_tok(); 
 
 			}else if(la2.token_val == "="){ //<htype> <id> = <expr>; 
 
-				newnode = new AST_Tree_Node(curtok); 
-				newnode->add_child(new AST_Tree_Node(la1)); 
-				assignnode = new AST_Tree_Node(la2); 
-				assignnode->add_child(new AST_Tree_Node(la1));
+				newnode = new AST_Tree_Node(curtok , "DEC"); 
+				newnode->add_child(new AST_Tree_Node(la1 , "ID")); 
+				assignnode = new AST_Tree_Node(la2 , "U"); 
+				assignnode->add_child(new AST_Tree_Node(la1 , "ID" ));
 				get_next_tok(); 
 				std::vector<TokenType>stmt = dequeue_and_return(";" , "" , false); 
 				AST_Tree_Node *stmtnode = parse_binary(stmt);
@@ -347,8 +360,8 @@ void Parser::parse(){
 
 			}else if(la2.token_val == "("){
 
-				newnode = new AST_Tree_Node(curtok); 
-				newnode->add_child(new AST_Tree_Node(la1));
+				newnode = new AST_Tree_Node(curtok , "FUNC"); 
+				newnode->add_child(new AST_Tree_Node(la1 , "ID"));
 
 				//iterating till ) <htype> fid( <htype> a , <htype> b ,  <htypr> c , ... );
 				//function definition 
@@ -359,8 +372,13 @@ void Parser::parse(){
 
 				for(int i = 0; i<typeList.size()-1; i+=3){
 
-					AST_Tree_Node *param_type_node = new AST_Tree_Node(typeList[i]); 
-					param_type_node->add_child(new AST_Tree_Node(typeList[i+1]));
+					if(typeList[i].token_val != "hfloat" && typeList[i].token_val != "hint" && typeList[i].token_val != "hchar"){
+						perror("Syntax Error!"); 
+						exit(0); 
+					}
+
+					AST_Tree_Node *param_type_node = new AST_Tree_Node(typeList[i] , "TYPE"); 
+					param_type_node->add_child(new AST_Tree_Node(typeList[i+1] , "ID"));
 
 					newnode->add_child(param_type_node); 
 				}
@@ -372,7 +390,7 @@ void Parser::parse(){
 
 		}else if(curtok.token_val == "hif"){
 
-			newnode = new AST_Tree_Node(curtok);
+			newnode = new AST_Tree_Node(curtok , "IF");
 			newnode->add_child(parse_binary(dequeue_and_return("[" , "" , false)));
 			//get_cur_tok().print(); 
 			Parser * parse_body_1 = new Parser(dequeue_and_return("]" , "[" , true) , "E");
@@ -382,7 +400,7 @@ void Parser::parse(){
 
 		}else if(curtok.token_val == "ret"){
 
-			newnode = new AST_Tree_Node(curtok); 
+			newnode = new AST_Tree_Node(curtok , "RET"); 
 			get_next_tok(); 
 			newnode->add_child(parse_binary(dequeue_and_return(";" , "" , false))); 
 			//dequeue_and_return("]" , "" , false); 
@@ -392,12 +410,15 @@ void Parser::parse(){
 	}else if(curtok.token_number == tok_id){
 
 		TokenType la = get_next_tok(); 
-		newnode = new AST_Tree_Node(la); 
+		newnode = new AST_Tree_Node(la , "U"); 
 
 		if(la.token_val == "="){
-			newnode->add_child(new AST_Tree_Node(curtok));
+			newnode->add_child(new AST_Tree_Node(curtok , "ID"));
 			get_next_tok();
 			newnode->add_child(parse_binary(dequeue_and_return(";" , "" , false)));
+		}else{
+			perror("Syntax error"); 
+			exit(0); 
 		}
 
 	}else if(curtok.token_number == tok_open_b){

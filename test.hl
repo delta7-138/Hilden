@@ -10,10 +10,17 @@ ans = ans + 69;
     hfloat fl = 7.8; 
     [
         hfloat z = 5.6; 
+        hfloat y = 4.56; 
     ]
-    
+
     [
         hint a = 5; 
+        hint b = 5; 
     ]
 ]
 
+hfloat func1(hint a , hint b , hint c)[
+    ret a + b + c; 
+]
+
+hint res = func1{func1{3 , 4 , 5} + 1 , 4 , 5} + 69;

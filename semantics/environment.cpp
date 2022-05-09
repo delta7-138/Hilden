@@ -1,5 +1,39 @@
 #include "environment.h"
 
+std::stack<Function_Frame>fstack; //please work 
+void print_map(std::map<std::string , Variable *>vlist){
+	std::map<std::string, Variable *>::iterator it;
+
+	for (it = vlist.begin(); it != vlist.end(); it++)
+	{
+		std::cout << it->first    // string (key)
+				<< ':'
+				<< it->second->val   // string's value 
+				<< std::endl;
+	}
+
+	std::cout<<std::endl; 
+}
+
+int gettype(std::string s){
+	int type = 0; 
+	if(s == "hint"){
+		type = tok_hint; 
+	}else if(s == "hfloat"){
+		type=  tok_hfloat; 
+	}else if(s == "hchar"){
+		type = tok_hchar; 
+	}else if(s == "hvoid"){
+		type = void_type; 
+	}
+	return type; 
+}
+
+Function :: Function(std::string name , int type){
+	this->name = name; 
+	this->ret_type = type; 
+}
+
 Variable :: Variable(std::string name , int type , int level){
     this->name = name;  
     this->type = type; 
@@ -11,6 +45,12 @@ TypeObject :: TypeObject(int type , std::string val){
     this->type = type;
     this->val = val;
 }   
+
+Environment::Environment(AST_Tree_Node *body , std::map<std::string , Variable *>vmap , int level){
+	this->body = body; 
+	this->variable_table = vmap; 
+	this->level = level;
+}
 
 Environment::Environment(AST_Tree_Node *body , int level ){
 	this->body = body;
@@ -40,6 +80,19 @@ void Environment::print_var_table(){
 	std::cout<<std::endl; 
 }
 
+void Environment::print_func_table(){
+	std::map<std::string, Function *>::iterator it;
+
+	for (it = function_table.begin(); it != function_table.end(); it++)
+	{
+		std::cout << it->first    // string (key)
+				<< ':'; 
+		print_map(it->second->argList);   // string's value
+	}
+
+	std::cout<<std::endl; 
+}
+
 template <typename T> T calc(T x , std::string op , T y){
 
 	if(op == "+"){
@@ -61,6 +114,11 @@ template <typename T> T calc(T x , std::string op , T y){
 	}
 	return -1;
 
+}
+
+TypeObject * Function::eval(int level , std::map<std::string , Function *>ftable){
+	Environment *fb = new Environment(body , argList , ftable , level ); 
+	return fb->eval(); 
 }
 
 TypeObject * Environment::get_val(TypeObject *lhs , std::string op , TypeObject *rhs){
@@ -106,6 +164,7 @@ TypeObject * Environment::get_val(TypeObject *lhs , std::string op , TypeObject 
 
 TypeObject * Environment::get_var(std::string id_name){
 	
+	//print_var_table(); 
 	if(variable_table.find(id_name) == variable_table.end()){
 		return new TypeObject(0 , "Varible Does not exist!"); 
 	}
@@ -114,8 +173,48 @@ TypeObject * Environment::get_var(std::string id_name){
 	return new TypeObject(var->type , var->val);
 }
 
+Function * Environment::get_func(std::string id_name){
+
+	if(function_table.find(id_name) == function_table.end()){ 
+		perror("Function not defined!");
+		exit(0); 
+	}
+
+	Function *func = function_table.at(id_name); 
+	return func; 
+}
+
 TypeObject * Environment::call_func(Function *func , AST_Tree_Node *fcallnode){
-	return new TypeObject(tok_hint, "0"); 
+
+	//print_func_table(); 
+	Function_Frame *function_frame = new Function_Frame(); 
+	std::map<std::string , Variable *> varmap; 
+
+	std::map<std::string, Variable *>::iterator varit; 
+	for(varit = variable_table.begin() ; varit != variable_table.end() ; varit++){
+		Variable *newvar = new Variable(varit->first , varit->second->type , level + 1); 
+		newvar->val = varit->second->val; 
+		varmap.insert(std::pair<std::string , Variable *>(newvar->name , newvar)); 
+	}
+
+	std::map<std::string , Variable *>::iterator argmap; 
+	int i; 
+
+	for(varit = func->argList.begin(), i = 0; varit != func->argList.end() ; varit++ , i++){
+
+		Variable *newvar = new Variable(varit->first , varit->second->type , level + 1); 
+		newvar->val = typecheck_and_eval(fcallnode->childList[i])->val;
+		if(varmap.find(newvar->name) != varmap.end()){
+			varmap.at(newvar->name) = newvar; 
+			continue; 
+		} 
+		varmap.insert(std::pair<std::string , Variable *>(newvar->name , newvar)); 
+	}
+
+	function_frame->env = new Environment(func->body , varmap , function_table , level); 
+	function_frame->ans = function_frame->env->eval(); 
+	//function_frame->env->print_var_table(); 
+	return function_frame->ans; 
 }
 
 
@@ -139,9 +238,8 @@ TypeObject * Environment::typecheck_and_eval(AST_Tree_Node *root){
 
 	}else if (root->node_type == "FCALL"){
 
-		// Function *func_sig = get_func(root->tok->token_val); 
-		// TypeObject *ret_val = call_func(func_sig , root); 
-		// return ret_val; 
+		Function *func_sig = get_func(root->tok->token_val); 
+		return call_func(func_sig , root); 
 	}
 
 	std::string op = root->tok->token_val; 
@@ -164,10 +262,10 @@ TypeObject * Environment::eval(){
 
 			Environment *blockenv = new Environment(root , variable_table , function_table , level + 1);
 			blockenv->eval(); 
-			blockenv->print_var_table(); 
+			//blockenv->print_var_table(); 
 		 
 		}else if(root->node_type == "DEC"){ //Declaration
-			
+			//print_var_table(); 
 			int type = 0; 
 			if(root->tok->token_val == "hint"){
 				type = tok_hint; 
@@ -182,7 +280,11 @@ TypeObject * Environment::eval(){
 				Variable *checkvar = variable_table.at(root->childList[0]->tok->token_val); 
 				if(checkvar->env_level == level){
 					return new TypeObject(0 , "Cannot declare variable with same identifier again!");
+				}else{
+					Variable *newvar = new Variable(root->childList[0]->tok->token_val , type , level); 
+					variable_table.at(newvar->name) = newvar; 
 				}
+
 			}
 
 			Variable *newvar = new Variable(root->childList[0]->tok->token_val , type , level);
@@ -206,14 +308,48 @@ TypeObject * Environment::eval(){
 
 			var->val = eval_expr->val;
 
-		}else if(root->node_type == "FC"){ //Function Call 
+		}else if(root->node_type == "FUNC"){ //Function Definition
+			//std::cout<<"in"<<std::endl; 
+			int rettype = gettype(root->tok->token_val); 
+			Function *newfunc = new Function(root->childList[0]->tok->token_val , rettype); 
+			for(int i = 1; i<root->childList.size()-1 ; i++){
 
-			
+				AST_Tree_Node  *arg = root->childList[i]; 
+				int var_type = gettype(arg->tok->token_val); 
+				//std::cout<<arg->tok->token_val; 
+				Variable *newvar = new Variable(arg->childList[0]->tok->token_val , var_type , level + 1);
+				newfunc->argList.insert(std::pair<std::string , Variable *>(newvar->name , newvar)); 
+
+			}
+
+			newfunc->body = root->childList[root->childList.size() - 1]; 
+			newfunc->level = level + 1; 
+
+			function_table.insert(std::pair<std::string , Function *>(newfunc->name , newfunc)); 
 
 		}else if(root->node_type == "IF"){ //conditional 
 
-		}
+			TypeObject *cond = typecheck_and_eval(root->childList[0]); 
+			if(cond->val == "1" || cond->val == "1.0"){
+				Environment *ifblock = new Environment(root->childList[1] , variable_table , function_table , level + 1); 
+				TypeObject *typeobj = ifblock->eval(); 
+				if(typeobj->type != 222){
+					return typeobj; 
+				}
 
+			}else if(root->childList.size() == 3){
+
+				Environment *elseblock = new Environment(root->childList[2] , variable_table, function_table , level + 1); 
+				TypeObject *typeobj = elseblock->eval(); 
+				if(typeobj->type != 222){
+					return typeobj; 
+				}
+			}
+
+		}else if(root->node_type == "RET"){ //returning in function body
+			TypeObject *retobj =  typecheck_and_eval(root->childList[0]); 
+			return retobj; 
+		}
 	}
 	return new TypeObject(222 , "success"); 
 }

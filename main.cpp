@@ -35,5 +35,6 @@ int main(int argc , char *argv[]){
 		exit(0); 
 	}
 	env->print_var_table(); 
+	env->print_func_table(); 
 	return 0;
 }

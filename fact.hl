@@ -1,0 +1,15 @@
+hint fact(hint n)[
+    hif n == 1 [
+        ret 1; 
+    ]
+    ret fact{n-1} * n; 
+]
+
+hint sum(hint n)[
+    hif n == 0[ 
+        ret 0; 
+    ]
+    ret sum{n-1} + n; 
+]
+
+hint ans = sum{5} + fact{5} + 4; 

@@ -398,6 +398,19 @@ void Parser::parse(){
 			newnode->add_child(parse_body_1->root); 
 			ifflag = true; 
 
+			// If there is an else clause to this if clause
+			if (get_cur_tok().token_val == "helse"){
+				// Add as a third child to the if node
+				get_next_tok(); 
+				get_next_tok(); 
+				std::vector<TokenType>tList = dequeue_and_return("]", "[", true); 
+
+				Parser * parse_else = new Parser(dequeue_and_return("]", "[", true), "E");
+				parse_else->parse();
+				newnode->add_child(parse_else->root);
+				get_cur_tok().print(); 
+			}
+
 		}else if(curtok.token_val == "ret"){
 
 			newnode = new AST_Tree_Node(curtok , "RET"); 

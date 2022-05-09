@@ -1,15 +1,3 @@
-hint max(hint a , hint b , hint c)[
-    hif a >= b & a>=c [
-        ret a; 
-    ]
-
-    hif b >= a & b>=c [
-        ret b; 
-    ] 
-
-    ret c; 
-]
-
 hint fibo(hint n)[
     hif n==0 [
         ret 1; 
@@ -22,4 +10,46 @@ hint fibo(hint n)[
     ret fibo{n-1} + fibo{n-2}; 
 ]
 
-hprintln fibo{8}; 
+
+hint is_odd(hint x)[
+    hif x == 0[
+        ret 0; 
+    ]
+
+    hint is_even(hint x)[
+        hif x == 0[
+            ret 1; 
+        ]
+
+        ret is_odd{x-1}; 
+    ]
+    
+    ret is_even{x-1}; 
+]
+
+
+
+hint fact(hint n)[
+    hint i = 1;
+    hint ans = 1; 
+
+    hwhile i <= n [
+        ans = ans * i; 
+        i = i + 1; 
+    ]
+
+    ret ans; 
+]
+
+[
+    hfloat a = 5.6; 
+    hfloat func(hfloat a)[ 
+        ret a  * 69; 
+    ]
+
+    hprintln func{a}; 
+]
+
+hprintln func{3}; 
+
+

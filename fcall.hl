@@ -3,6 +3,7 @@ hint func1(hint a , hint b , hint c)[
 ]
 
 hint x = func1{ func1{3 , 6 , 7} + (5.6 * 6.44) - 5 , 4 , 5} + 6; 
+hprintln x;
 
 hint fact(hint n)[
 	hif n==0 [
@@ -12,4 +13,5 @@ hint fact(hint n)[
 	ret (fact{n-1} * n); 
 ]
 
-hint x = fact{5}; 
+x = fact{5}; 
+hprintln x; 

@@ -29,10 +29,10 @@ int main(int argc , char *argv[]){
 	Environment *env = new Environment(parser->root , 0);  
 	TypeObject *retval = env->eval(); 
 
-	// if(retval->type == 0){
-	// 	std::cout<<retval->val<<std::endl; 
-	// 	exit(0); 
-	// }
+	if(retval->type == 0){
+		std::cout<<retval->val<<std::endl; 
+		exit(0); 
+	}
 	// env->print_var_table(); 
 	// env->print_func_table(); 
 	return 0;

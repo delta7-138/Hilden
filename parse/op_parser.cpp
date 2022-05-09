@@ -450,7 +450,7 @@ void Parser::parse(){
 			//get_cur_tok().print(); 
 			// If there is an else clause to this if clause
 			if (get_cur_tok().token_val == "helse"){
-				std::cout<<"in"; 
+				//std::cout<<"in"; 
 				// Add as a third child to the if node
 				get_next_tok(); 
 				get_next_tok(); 
@@ -460,7 +460,7 @@ void Parser::parse(){
 				Parser * parse_else = new Parser(dequeue_and_return("]", "[", true), "E", 1);
 				parse_else->parse();
 				newnode->add_child(parse_else->root);
-				get_cur_tok().print(); 
+				//get_cur_tok().print(); 
 			}
 
 		}else if(curtok.token_val == "ret"){

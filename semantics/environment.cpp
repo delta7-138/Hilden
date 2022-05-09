@@ -258,14 +258,21 @@ TypeObject * Environment::typecheck_and_eval(AST_Tree_Node *root){
 }
 
 TypeObject * Environment::eval(){
+	//std::cout<<body->childList[3]->node_type<<std::endl;
 
 	for(int i = 0; i<body->childList.size() ; i++){
 		AST_Tree_Node *root = body->childList[i]; 
+		//std::cout<<i<<std::endl;
 		//std::cout<<root->node_type<<std::endl; 
 		if(root->node_type == "B"){ //Block 
 
 			Environment *blockenv = new Environment(root , variable_table , function_table , level + 1);
-			blockenv->eval(); 
+			TypeObject *blockeval = blockenv->eval(); 
+			if(blockeval->type == 0){
+				std::cout<<blockeval->val<<std::endl; 
+				exit(0); 
+			}
+			//std::cout<<blockeval->val<<std::endl ;
 			//blockenv->print_var_table(); 
 		 
 		}else if(root->node_type == "DEC"){ //Declaration
@@ -316,9 +323,9 @@ TypeObject * Environment::eval(){
 			//std::cout<<"in"<<std::endl; 
 			int rettype = gettype(root->tok->token_val); 
 			Function *newfunc = new Function(root->childList[0]->tok->token_val , rettype); 
-			for(int i = 1; i<root->childList.size()-1 ; i++){
+			for(int j = 1; j<root->childList.size()-1 ; j++){
 
-				AST_Tree_Node  *arg = root->childList[i]; 
+				AST_Tree_Node  *arg = root->childList[j]; 
 				int var_type = gettype(arg->tok->token_val); 
 				//std::cout<<arg->tok->token_val; 
 				Variable *newvar = new Variable(arg->childList[0]->tok->token_val , var_type , level + 1);
@@ -356,7 +363,7 @@ TypeObject * Environment::eval(){
 			return retobj; 
 
 		}else if(root->node_type == "PRNT"){
-
+			//std::cout<<"in"; 
 			TypeObject *printobj = typecheck_and_eval(root->childList[0]); 
 			std::cout<<printobj->val; 
 			if(root->tok->token_val == "hprintln"){

@@ -111,6 +111,10 @@ template <typename T> T calc(T x , std::string op , T y){
 		return x==y;
 	}else if(op == "!="){
 		return x!=y;
+	}else if(op == "&"){
+		return x&&y; 
+	}else if(op == "|"){
+		return x||y; 
 	}
 	return -1;
 

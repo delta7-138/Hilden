@@ -36,8 +36,10 @@ int Parser::get_precedence(std::string tokval){
 		return ADD_PREC; 
 	}else if(tokval=="*" || tokval=="/"){
 		return MUL_PREC;
-	}else{
+	}else if(tokval=="<=" || tokval == ">=" || tokval == "==" || tokval == "!="){
 		return EQ_PREC;
+	}else{
+		return LOG_PREC;
 	}
 	return -1; 
 }
@@ -477,7 +479,7 @@ void Parser::parse(){
 			
 			newnode = new AST_Tree_Node(curtok , "WHILE"); 
 			newnode->add_child(parse_binary(dequeue_and_return("[" , "" , false)));
-			Parser * parse_body_1 = new Parser(dequeue_and_return("]" , "[" , true) , "E");
+			Parser * parse_body_1 = new Parser(dequeue_and_return("]" , "[" , true) , "E" , 1);
 			parse_body_1->parse(); 
 			newnode->add_child(parse_body_1->root); 
 		}

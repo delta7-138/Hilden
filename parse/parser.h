@@ -14,6 +14,7 @@
 #define EQ_PREC 1
 #define ADD_PREC 2
 #define MUL_PREC 3
+#define LOG_PREC 0
 
 enum AST_Node_Type {
 	n_binary = 0, // Default, binary statements

@@ -18,7 +18,7 @@ std::vector<TokenType> Lexer::gettok(){
             c = word.at(i);
             //std::cout<<c<<std::endl;
             //std::cout<<i<<","<<len<<std::endl; 
-            if(c=='+' || c=='-' || c=='*' || c=='/' || c=='=' || c=='(' || c==')' || c==';' || c=='!' || c=='>' || c=='<' || c=='[' || c==']' || c=='{' || c == '}' || c == ','){
+            if(c=='+' || c=='-' || c=='*' || c=='/' || c=='=' || c=='(' || c==')' || c==';' || c=='!' || c=='>' || c=='<' || c=='[' || c==']' || c=='{' || c == '}' || c == ','  || c=='&' || c=='|'){
                 if(buffer!=""){
                     tokenList.push_back(getNextToken(buffer)); 
                 }

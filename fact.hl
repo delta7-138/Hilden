@@ -1,28 +1,25 @@
-hint fact(hint n)[
-    hif n == 1 [
+hint max(hint a , hint b , hint c)[
+    hif a >= b & a>=c [
+        ret a; 
+    ]
+
+    hif b >= a & b>=c [
+        ret b; 
+    ] 
+
+    ret c; 
+]
+
+hint fibo(hint n)[
+    hif n==0 [
         ret 1; 
     ]
-    ret fact{n-1} * n; 
-]
 
-hint sum(hint n)[
-    hif n == 0[ 
-        ret 0; 
+    hif n==1[
+        ret 1; 
     ]
-    ret sum{n-1} + n; 
+
+    ret fibo{n-1} + fibo{n-2}; 
 ]
 
-hint ans = sum{fact{5}} + fact{5} + 4;
-
-hint i = 0; 
-
-hwhile i<=5 [
-    hint j = 1; 
-    hwhile j<=i[
-        hprint j;  
-        j = j + 1;
-    ]
-    hprintln j; 
-    i = i + 1; 
-]
-
+hprintln fibo{8}; 

@@ -2,7 +2,6 @@
 #include "lex/lexer.h"
 #include "lex/token.h"
 #include "semantics/environment.h"
-#include "semantics/meta.h"
 #include <fstream>
 #include <iostream>
 
@@ -23,7 +22,7 @@ int main(int argc , char *argv[]){
 	lexer->print_token_list(); 
 	std::cout<<std::endl;
 
-	Parser *parser = new Parser(tList , "E"); 
+	Parser *parser = new Parser(tList , "E", 0); 
 	parser->parse(); 
 	parser->print_ast(parser->root , 0); 
 

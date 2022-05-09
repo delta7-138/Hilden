@@ -56,7 +56,7 @@ void Parser::print_ast(AST_Tree_Node* node, int depth=0){
 	}
 }
 
-Parser::Parser(std::vector<TokenType>tList , std::string start_val){
+Parser::Parser(std::vector<TokenType>tList , std::string start_val, int check){
 	TokenType start; 
 	start.token_val = start_val; 
 	start.token_number = tok_undef; //For denotation only
@@ -64,8 +64,51 @@ Parser::Parser(std::vector<TokenType>tList , std::string start_val){
 	for(int i = 0; i<tList.size(); i++){
 		fresh_tokens.push(tList[i]); 
 	}
+	if(!check){
+		init_check();
+	}
 }
 
+//Function to check paranthesis
+void Parser::check_paranthesis(int open_type, int close_type){
+	std::stack<TokenType> paran_stack;
+	std::queue<TokenType> temp_queue = fresh_tokens;
+	int size = fresh_tokens.size();
+	for(int i=0; i<size; i++){
+		TokenType token = temp_queue.front();
+		temp_queue.pop();
+		if(token.token_number == open_type){
+			paran_stack.push(token);
+		}
+		else if(token.token_number == close_type){
+			if(paran_stack.empty()){
+				std::cout<<"Syntax Error missing brackets";
+				exit(1);
+			}
+			paran_stack.pop();
+		}
+	}
+	if(!paran_stack.empty()){
+		std::cout<<"Syntax Error missing brackets";
+		exit(1);
+	}
+}
+
+//Function to perform initial check
+void Parser::init_check(){
+	std::queue<TokenType> temp_queue = fresh_tokens;
+	for(int i=0; i<temp_queue.size(); i++){
+		TokenType token = temp_queue.front();
+		temp_queue.pop();
+		if(token.token_number == tok_undef){
+			std::cout << "Syntax Error :: Undefined Token Found!"; 
+			exit(1);
+		}
+	}
+	check_paranthesis(tok_open_b, tok_close_b);
+	check_paranthesis(tok_open_p, tok_close_p);
+	check_paranthesis(tok_open_c, tok_close_c);
+}
 TokenType Parser::get_next_tok(){
 	TokenType dummy; 
 	dummy.token_val = "dummy"; 
@@ -274,6 +317,10 @@ AST_Tree_Node * Parser::parse_binary(std::vector<TokenType>tList){
 
 	AST_Tree_Node* ast = parse_stack.top();
 	parse_stack.pop();
+	if(!parse_stack.empty()){
+		std::cout << "Syntax Error";
+		exit(1);
+	}
 	// print_ast(ast);
 
 	// return std::stof(ast->tok->token_val);
@@ -383,7 +430,7 @@ void Parser::parse(){
 					newnode->add_child(param_type_node); 
 				}
 
-				Parser *function_body_parser = new Parser(dequeue_and_return("]" , "[" , true) , "FB");
+				Parser *function_body_parser = new Parser(dequeue_and_return("]" , "[" , true) , "FB", 1);
 				function_body_parser->parse(); 
 				newnode->add_child(function_body_parser->root); //adding body of function definition
 			}
@@ -393,7 +440,7 @@ void Parser::parse(){
 			newnode = new AST_Tree_Node(curtok , "IF");
 			newnode->add_child(parse_binary(dequeue_and_return("[" , "" , false)));
 			//get_cur_tok().print(); 
-			Parser * parse_body_1 = new Parser(dequeue_and_return("]" , "[" , true) , "E");
+			Parser * parse_body_1 = new Parser(dequeue_and_return("]" , "[" , true) , "E", 1);
 			parse_body_1->parse(); 
 			newnode->add_child(parse_body_1->root); 
 			ifflag = true; 
@@ -405,7 +452,7 @@ void Parser::parse(){
 				get_next_tok(); 
 				std::vector<TokenType>tList = dequeue_and_return("]", "[", true); 
 
-				Parser * parse_else = new Parser(dequeue_and_return("]", "[", true), "E");
+				Parser * parse_else = new Parser(dequeue_and_return("]", "[", true), "E", 1);
 				parse_else->parse();
 				newnode->add_child(parse_else->root);
 				get_cur_tok().print(); 
@@ -437,7 +484,7 @@ void Parser::parse(){
 	}else if(curtok.token_number == tok_open_b){
 
 		get_next_tok(); 
-		Parser * parse_body = new Parser(dequeue_and_return("]" , "[" , true) ,"E");
+		Parser * parse_body = new Parser(dequeue_and_return("]" , "[" , true) ,"E", 1);
 		parse_body->parse();
 		newnode = parse_body->root;
 	}

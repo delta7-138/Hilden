@@ -3,30 +3,6 @@ hif 4.0 + 5.0 [
 ]
 hif 6.0 [
 	hfloat e = 3.3;
+] helse 4.4 + 2.3 [
+	hfloat d = 4.4;
 ]
-
-[
-	hfloat xyz= 6.9; 
-	hfloat g = 5.6 + xyz; 
-]
-
-hfloat z = 4.5; 
-
-hfloat func1(hfloat a , hint b , hchar c)[
-	hfloat x = a - b + c; 
-	ret (x + 5.6 * 4.7);
-
-	hfloat abc = 4.56; 
-	ret abc; 
-]
-
-hfloat x = 4.5; 
-
-[
-	hfloat x = 4.5; 
-	[
-		hfloat g = 5.6; 
-	]
-]
-
-hfloat x = hfunc1{4.5 , 69 , 'c'}; 

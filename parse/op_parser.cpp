@@ -84,7 +84,7 @@ TokenType Parser::get_next_tok(){
 }
 
 TokenType Parser::get_cur_tok(){
-	if(!fresh_tokens.empty ()){
+	if(!fresh_tokens.empty()){
 		return fresh_tokens.front(); 
 	}
 	TokenType dummy; 
@@ -317,7 +317,8 @@ std::vector<TokenType> Parser::dequeue_and_return(std::string sep , std::string 
 
 void Parser::parse(){
 	//get_cur_tok().print(); 
-	//std::cout<<std::endl; 
+	//std::cout<<std::endl;
+	std::cout << fresh_tokens.size() << std::endl;
 	if(fresh_tokens.empty()){
 		return ; 
 	}
@@ -396,7 +397,15 @@ void Parser::parse(){
 			Parser * parse_body_1 = new Parser(dequeue_and_return("]" , "[" , true) , "E");
 			parse_body_1->parse(); 
 			newnode->add_child(parse_body_1->root); 
-			ifflag = true; 
+			ifflag = true;
+
+			// If there is an else clause to this if clause
+			if (get_cur_tok().token_val == "helse"){
+				// Add as a third child to the if node
+				Parser * parse_else = new Parser(dequeue_and_return("]", "[", true), "E");
+				parse_else->parse();
+				newnode->add_child(parse_else->root);
+			}
 
 		}else if(curtok.token_val == "ret"){
 
@@ -435,7 +444,8 @@ void Parser::parse(){
 			root->add_child(assignnode); 
 		}
 	}
-	//fresh_tokens.front().print(); 
+	// fresh_tokens.front().print();
+	// if (get_cur_tok().token_val == " ") return;
 	parse(); 
 }
 

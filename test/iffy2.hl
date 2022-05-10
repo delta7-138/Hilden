@@ -1,7 +1,13 @@
-hif 4 [
+hfloat x = 6.0;
+hprintln x;
+hif 1.0 [
     hfloat x = 5.6;
+    hprintln x;
 ] helse [
     hfloat y = 4.6; 
 ]
-
-hfloat x = 4.5; 
+hif 1.0 [
+    hfloat x = 5.2;
+    hprintln x;
+]
+hprintln x;

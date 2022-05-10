@@ -10,6 +10,7 @@ int main(int argc , char *argv[]){
 		std::cout<<"No input file"<<std::endl;
 		exit(0); 
 	}
+
 	std::ifstream infile(argv[1]);
 	std::string data; 
 	if(infile){
@@ -23,7 +24,10 @@ int main(int argc , char *argv[]){
 	//std::cout<<std::endl;
 
 	Parser *parser = new Parser(tList , "E", 0); 
-	parser->parse(); 
+	parser->parse();
+	if (argc == 3) {
+		parser->print_ast(parser->root, 0);	
+	}
 	//parser->print_ast(parser->root , 0); 
 
 	Environment *env = new Environment(parser->root , 0);  

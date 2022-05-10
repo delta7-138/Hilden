@@ -27,8 +27,6 @@ hint is_odd(hint x)[
     ret is_even{x-1}; 
 ]
 
-hprintln is_odd{7}; 
-hprintln is_odd{12}; 
 
 hint fact(hint n)[
     hint i = 1;
@@ -43,6 +41,6 @@ hint fact(hint n)[
 ]
 
 
-
+hprintln fact{5};
 
 

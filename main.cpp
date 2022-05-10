@@ -4,6 +4,7 @@
 #include "semantics/environment.h"
 #include <fstream>
 #include <iostream>
+#include <cstring>
 
 int main(int argc , char *argv[]){
 	if(argc <= 1){
@@ -26,7 +27,16 @@ int main(int argc , char *argv[]){
 	Parser *parser = new Parser(tList , "E", 0); 
 	parser->parse();
 	if (argc == 3) {
-		parser->print_ast(parser->root, 0);	
+		if(strcmp(argv[2] , "--tree") == 0)
+			parser->print_ast(parser->root, 0);	
+		else if(strcmp(argv[2] , "--lex") == 0)
+			lexer->print_token_list(); 
+		else if(strcmp(argv[2] , "--all") == 0){
+			lexer->print_token_list(); 
+			std::cout<<std::endl;
+			parser->print_ast(parser->root , 0); 
+		}
+
 	}
 	//parser->print_ast(parser->root , 0); 
 

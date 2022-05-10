@@ -37,4 +37,6 @@ The semantic analyser handles environments. Scoped declarations are local to the
 The SA also evaluates the AST. Uses a modification of depth first tree traversal, looks at the node type, does typechecking and evaluates accrodingly.
 
 **Pass the `--tree` flag while executing Hilden code to print out the generated AST**
+**Pass the `--lex` flag while executing Hilden code to print out the token list**
+**Pass the `--all` flag while executing Hilden code to print out both the token list and the AST generated**
 

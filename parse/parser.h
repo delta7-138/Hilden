@@ -60,11 +60,5 @@ public:
 	void check_paranthesis(int, int);
 }; 
 
-int get_precedence(std::string);
-float parse_primary(std::vector<TokenType>);
-AST_Tree_Node *parse_expression(AST_Tree_Node *);
-AST_Tree_Node* parse_binary();
-AST_Tree_Node *init_parse(std::vector<TokenType>tokenList);
-void print_ast(AST_Tree_Node* node, int);
 
 #endif

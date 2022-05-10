@@ -1,0 +1,14 @@
+hint max(hint a , hint b , hint c)[
+    hif a>=b & a>=c[
+        ret a; 
+    ]
+
+    hif b>=c & b>=a[
+        ret b; 
+    ]
+
+    ret c; 
+]
+
+hint ans = max{1 , 3 , 2}; 
+hprintln ans; 

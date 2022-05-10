@@ -1,0 +1,14 @@
+hint n = 5; 
+
+hint i = 0; 
+hwhile i <= n-1[
+    hint j = 1;
+
+    hwhile j<=i [
+        hprint j;
+        j = j + 1; 
+    ]
+
+    hprintln j; 
+    i = i + 1; 
+]

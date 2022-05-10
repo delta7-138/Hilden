@@ -1,35 +1,3 @@
-hint fibo(hint n)[
-    hif n==0 [
-        ret 1; 
-    ]
-
-    hif n==1[
-        ret 1; 
-    ]
-
-    ret fibo{n-1} + fibo{n-2}; 
-]
-
-
-hint is_odd(hint x)[
-    hif x == 0[
-        ret 0; 
-    ]
-
-    hint is_even(hint x)[
-        hif x == 0[
-            ret 1; 
-        ]
-
-        ret is_odd{x-1}; 
-    ]
-    
-    ret is_even{x-1}; 
-]
-
-hprintln is_odd{7}; 
-hprintln is_odd{12}; 
-
 hint fact(hint n)[
     hint i = 1;
     hint ans = 1; 
@@ -42,7 +10,4 @@ hint fact(hint n)[
     ret ans; 
 ]
 
-
-
-
-
+hprintln fact{5}; 

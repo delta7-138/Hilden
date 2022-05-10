@@ -1,0 +1,9 @@
+hint fibo(hint n)[
+    hif n <= 1 [
+        ret 1; 
+    ]
+
+    ret fibo{n-1} + fibo{n - 2}; 
+]
+
+hprintln fibo{8}; 

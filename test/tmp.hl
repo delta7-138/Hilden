@@ -1,0 +1,20 @@
+hint fibo(hint n)[
+    hif n==0 [
+        ret 1; 
+    ]
+
+    hif n==1[
+        ret 1; 
+    ]
+
+    ret fibo{n-1} + fibo{n-2}; 
+]
+
+
+
+
+
+
+
+
+

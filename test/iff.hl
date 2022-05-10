@@ -1,0 +1,21 @@
+hint a = 4; 
+hif a>=0 [
+    hprintln a; 
+]
+
+hfloat b = 5.6; 
+hif b == 0 [ 
+    hprintln 0;
+] helse [
+    hprintln b; 
+]
+
+hfloat c = 6.8; 
+hif c >= 1[
+    hif c <= 7[
+        hprintln c; 
+    ] helse [
+        hprintln 0; 
+    ]
+]
+

@@ -1,0 +1,18 @@
+hint is_odd(hint x)[
+    hif x == 0[
+        ret 0; 
+    ]
+
+    hint is_even(hint x)[
+        hif x == 0[
+            ret 1; 
+        ]
+
+        ret is_odd{x-1}; 
+    ]
+    
+    ret is_even{x-1}; 
+]
+
+hprintln is_odd{7}; 
+hprintln is_odd{12}; 

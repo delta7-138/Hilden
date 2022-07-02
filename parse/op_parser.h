@@ -8,8 +8,8 @@
 #include <map>
 #include <cstdlib>
 #include <iterator>
-#include "lexer.h"
-#include "token.h"
+#include "../lex/lexer.h"
+#include "../lex/token.h"
 
 #define EQ_PREC 1
 #define ADD_PREC 2

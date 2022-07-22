@@ -1,0 +1,2 @@
+hstring x = "hellow"; 
+x = x + 5;

@@ -1,0 +1,4 @@
+hif 15 + 16 {
+    hint x = "hello";
+    x = "sup?";
+}

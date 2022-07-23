@@ -1,5 +1,5 @@
 
-#include "parser.hh"
+#include "Number.hh"
 #include <cassert>
 
 template <typename T> void Number::init(T &member, const T &val) {

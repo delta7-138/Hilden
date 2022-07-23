@@ -4,15 +4,15 @@
 
 #include <string>
 #include "assert.h"
-class Number {
-public:
-    enum class ValueType{
+
+enum ValueType{
         INTEGER, 
         FLOAT,
         CHAR,
         STRING,
         VOID
     };
+class Number {
 public:
     Number() : m_type(ValueType::VOID) {}
     explicit Number(int val): m_type(ValueType::INTEGER), int_val(val) {}
@@ -41,6 +41,10 @@ public:
     const std::string& get_string() const {
         assert(m_type == ValueType::STRING);
         return string_val;
+    }
+
+    ValueType get_type() const {
+        return m_type;
     }
 
     ~Number() { destroy();}

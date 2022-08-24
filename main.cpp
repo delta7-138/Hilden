@@ -12,15 +12,16 @@ int main(int argc , char *argv[]){
 		exit(0); 
 	}
 
-	std::ifstream infile(argv[1]);
-	std::string data; 
-	if(infile){
-		std::ostringstream ss;   
-		ss<<infile.rdbuf(); 
-		data = ss.str(); 
-	}
-	Lexer *lexer = new Lexer(data); 
-	std::vector<TokenType>tList = lexer->gettok(); 
+	// std::ifstream infile(argv[1]);
+	// std::string data; 
+	// if(infile){
+	// 	std::ostringstream ss;   
+	// 	ss<<infile.rdbuf(); 
+	// 	data = ss.str(); 
+	// }
+	Lexer *lexer = new Lexer(); 
+	std::vector<TokenType>tList = lexer->gettokenlist(argv[1]); 
+	lexer->print_token_list();
 	//lexer->print_token_list(); 
 	//std::cout<<std::endl;
 

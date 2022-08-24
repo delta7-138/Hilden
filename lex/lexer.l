@@ -15,7 +15,11 @@
 "hstring"  return tok_keyword;//keywords
 "hwhile"  return tok_keyword;//keywords
 "hprint"  return tok_keyword;//keywords
+"hprintln" return tok_keyword; 
 "hint"  return tok_keyword;//keywords
+"hif" return tok_keyword; 
+"helse" return tok_keyword; 
+"ret" return tok_keyword; 
 
 "+" return tok_operator;//operator
 "-" return tok_operator;//operator
@@ -25,9 +29,22 @@
 "!" return tok_operator;//operator
 "<" return tok_operator;//operator
 ">" return tok_operator;//operator
+"<=" return tok_operator; 
+">=" return tok_operator; 
+"!=" return tok_operator; 
+"==" return tok_operator; 
+"&" return tok_operator; 
+"|" return tok_operator; 
 
-"{" return tok_open_b;//braces
-"}" return tok_close_b;//braces
+";" return tok_sep; 
+"," return tok_coma; 
+
+
+"[" return tok_open_b; //block
+"]" return tok_close_b; //block
+
+"{" return tok_open_c;//braces
+"}" return tok_close_c;//braces
 
 [0-9]*          return tok_hint;//ints
 [0-9]*"."[0-9]* return tok_hfloat;//floats

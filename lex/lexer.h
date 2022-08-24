@@ -17,6 +17,10 @@
     8. Numeric Literal (has only decimal and numbers)
     9. Operators (+ - * / =)
 */
+extern int yylex();
+extern int yylineno;
+extern char* yytext;
+extern FILE* yyin;
 
 class TokenType{
     public: 
@@ -28,18 +32,28 @@ class TokenType{
     }
 }; 
 
-std::vector<TokenType> gettok(std::string); 
-bool isDigit(char);
-bool isAlphabet(char);
-bool isAlphanumeric(char);
-bool isSeparator(std::string);
-bool isKeyword(std::string);
-bool isOpenParan(std::string);
-bool isCloseParan(std::string);
-bool isOperator(std::string);
-bool isStringLiteral(std::string);
-bool isCharLiteral(std::string);
-bool isNumeric(std::string);
-bool isIdentifier(std::string);
-TokenType getNextToken(std::string);
+class Lexer{
+public: 
+    std::string source; 
+    std::vector<TokenType> tokenList;
+    std::vector<TokenType> gettokenlist(char *); 
+
+    //functions to validate and find token class implements NFA's
+    // bool isDigit(char);
+    // bool isAlphabet(char);
+    // bool isAlphanumeric(char);
+    // bool isSeparator(std::string);
+    // bool isKeyword(std::string);
+    // bool isOpenParan(std::string);
+    // bool isCloseParan(std::string);
+    // bool isOperator(std::string);
+    // bool isStringLiteral(std::string);
+    // bool isCharLiteral(std::string);
+    // bool isNumeric(std::string);
+    // bool isIdentifier(std::string);
+    // bool isIntegerLiteral(std::string);
+    // bool isFloatingLiteral(std::string);
+    // TokenType getNextToken(std::string);
+    void print_token_list(); 
+}; 
 #endif

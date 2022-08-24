@@ -18,42 +18,28 @@
     9. Operators (+ - * / =)
 */
 
-class TokenType {
+class TokenType{
     public: 
     int token_number; 
     std::string token_val; 
 
     void print(){
-        std::cout << "<" << token_number <<" : " << token_val << ">";
+        std::cout<<"<"<<token_number<<" : "<<token_val<<">"<<std::endl; 
     }
 }; 
 
-class Lexer{
-public: 
-    std::string source; 
-    std::vector<TokenType> tokenList;
-    std::vector<TokenType> gettok(); 
-
-    //functions to validate and find token class implements NFA's
-    bool isDigit(char);
-    bool isAlphabet(char);
-    bool isAlphanumeric(char);
-    bool isSeparator(std::string);
-    bool isKeyword(std::string);
-    bool isOpenParan(std::string);
-    bool isCloseParan(std::string);
-    bool isOperator(std::string);
-    bool isStringLiteral(std::string);
-    bool isCharLiteral(std::string);
-    bool isNumeric(std::string);
-    bool isIdentifier(std::string);
-    bool isIntegerLiteral(std::string);
-    bool isFloatingLiteral(std::string);
-    TokenType getNextToken(std::string);
-    void print_token_list(); 
-
-    Lexer(std::string); 
-}; 
-
-
+std::vector<TokenType> gettok(std::string); 
+bool isDigit(char);
+bool isAlphabet(char);
+bool isAlphanumeric(char);
+bool isSeparator(std::string);
+bool isKeyword(std::string);
+bool isOpenParan(std::string);
+bool isCloseParan(std::string);
+bool isOperator(std::string);
+bool isStringLiteral(std::string);
+bool isCharLiteral(std::string);
+bool isNumeric(std::string);
+bool isIdentifier(std::string);
+TokenType getNextToken(std::string);
 #endif

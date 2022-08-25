@@ -20,6 +20,7 @@ std::vector<TokenType> Lexer::gettokenlist(char * file){
         ntoken = yylex();
     }
 
+    this->tokenList = tokenList; 
     return tokenList;
 }
 

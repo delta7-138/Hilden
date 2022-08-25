@@ -46,7 +46,7 @@
 "{" return tok_open_c;//braces
 "}" return tok_close_c;//braces
 
-[0-9]*          return tok_hint;//ints
+[0-9]* return tok_hint;//ints
 [0-9]*"."[0-9]* return tok_hfloat;//floats
 "'"."'"         return tok_hchar;//chars
 

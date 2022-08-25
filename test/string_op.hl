@@ -1,0 +1,22 @@
+hint len(hstring s)[ 
+    hif s == ""[
+        ret 0; 
+    ]
+    ret 1 + len{s-1}; 
+]
+
+hstring rev(hstring s)[
+    hif s == ""[
+        ret ""; 
+    ]
+    ret rev{s-1} + (s/1); 
+]
+
+hint palindrome(hstring s1)[
+    ret rev{s1} == s1; 
+]
+
+hstring str = "abcdef"; 
+hprintln len{str}; 
+hprintln rev{str}; 
+hprintln palindrome{"aba"}; 

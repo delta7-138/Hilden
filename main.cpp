@@ -21,7 +21,6 @@ int main(int argc , char *argv[]){
 	// }
 	Lexer *lexer = new Lexer(); 
 	std::vector<TokenType>tList = lexer->gettokenlist(argv[1]); 
-	lexer->print_token_list();
 	//lexer->print_token_list(); 
 	//std::cout<<std::endl;
 

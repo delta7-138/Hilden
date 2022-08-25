@@ -224,8 +224,10 @@ AST_Tree_Node * Parser::parse_binary(std::vector<TokenType>tList){
 		int token_number = curtok->token_number; 
 		std::string token_value = curtok->token_val;
 
-		if(token_number==tok_hfloat || token_number==tok_id || token_number==tok_hchar || token_number==tok_hint){
-
+		if(token_number==tok_hfloat || token_number==tok_id || token_number==tok_hchar || token_number==tok_hint || token_number == tok_hstring){
+			if(token_number == tok_hstring){
+				curr->tok->token_val = token_value.substr(1 , token_value.length()-2); 
+			}
 			output_q.push_back(curr);
 
 		}else if(token_number == tok_operator){
@@ -293,7 +295,7 @@ AST_Tree_Node * Parser::parse_binary(std::vector<TokenType>tList){
 		AST_Tree_Node *curnode = output_q[i]; 
 		TokenType *tok = curnode->tok;
 
-		if(tok->token_number==tok_hfloat || tok->token_number==tok_id || tok->token_number == tok_hint || tok->token_number == tok_hchar){
+		if(tok->token_number==tok_hfloat || tok->token_number==tok_id || tok->token_number == tok_hint || tok->token_number == tok_hchar || tok->token_number == tok_hstring){
 
 			parse_stack.push(curnode); 
 
@@ -380,14 +382,14 @@ void Parser::parse(){
 
 		
 		//case when keyword is a data type either declaration or declaration and assignment
-		if(curtok.token_val == "hfloat" || curtok.token_val == "hint" || curtok.token_val == "hchar"){
+		if(curtok.token_val == "hfloat" || curtok.token_val == "hint" || curtok.token_val == "hchar" || curtok.token_val == "hstring"){
 
 			TokenType la1 = get_next_tok(); 
 			TokenType la2 = get_next_tok(); 
 
 			if(la2.token_number == tok_sep){ //<htype> <id>; only declaration
 
-				if(curtok.token_val != "hfloat" && curtok.token_val != "hint" && curtok.token_val != "hchar"){
+				if(curtok.token_val != "hfloat" && curtok.token_val != "hint" && curtok.token_val != "hchar" && curtok.token_val != "hstring"){
 						perror("Syntax Error!"); 
 						exit(0); 
 				}
@@ -421,7 +423,7 @@ void Parser::parse(){
 
 				for(int i = 0; i<typeList.size()-1; i+=3){
 
-					if(typeList[i].token_val != "hfloat" && typeList[i].token_val != "hint" && typeList[i].token_val != "hchar"){
+					if(typeList[i].token_val != "hfloat" && typeList[i].token_val != "hint" && typeList[i].token_val != "hchar" && typeList[i].token_val != "hstring"){
 						perror("Syntax Error!"); 
 						exit(0); 
 					}

@@ -25,6 +25,8 @@ int gettype(std::string s){
 		type = tok_hchar; 
 	}else if(s == "hvoid"){
 		type = void_type; 
+	}else if(s == "hstring"){
+		type = tok_hstring;
 	}
 	return type; 
 }
@@ -120,6 +122,113 @@ template <typename T> T calc(T x , std::string op , T y){
 
 }
 
+std::string delim_string(std::string x){
+	return x.substr(1 , x.length()-2); 
+}
+
+std::string create_string_two(std::string x , int ct , std::string y){
+	for(int i = 0; i<ct; i++){
+		x = x + y; 
+	}
+	return x; 
+}
+
+std::string comp(std::string x , std::string y , std::string op){
+	if(op == "<="){
+		if(x<=y){
+			return "1";
+		}
+
+	}else if(op == ">="){
+		if(x>=y){
+			return "1"; 
+		}
+
+	}else if(op == "<"){
+		if(x<y){
+			return "1";
+		}
+
+	}else if(op == ">"){
+		if(x>y){
+			return "1"; 
+		}
+
+	}else if(op == "=="){
+		if(x == y){
+			return "1"; 
+		} 
+	}else if(op == "!="){
+		if(x != y){
+			return "1"; 
+		}
+	}
+	return "0"; 
+}
+
+TypeObject * calc_string(std::string x , std::string op , std::string y , bool flag){
+	TypeObject *typeobj = new TypeObject(0 , "err"); 
+	typeobj->type = tok_hstring; 
+
+	if(op == "+"){
+		if(flag == true){
+			typeobj->val = x + y; 
+		}else{
+			typeobj->val = create_string_two(x , std::stoi(y) , " ");  
+		}
+	}else if(op == "-"){
+		if(flag == true){
+			typeobj->val = "Invalid operation on strings (/)"; 
+			typeobj->type = 0; 
+		}else{
+			int yint = std::stoi(y); 
+			if(yint > x.length()){
+				typeobj->val = "index out of bounds"; 
+				typeobj->type = 0; 
+			}else{
+				typeobj->val = x.substr(yint); 
+			}
+		}
+
+	}else if(op == "*"){
+
+		if(flag == true){
+			typeobj->val = "Invalid operation on strings (*)"; 
+			typeobj->type = 0; 
+		}else{
+			typeobj->val = create_string_two(x , std::stoi(y) , x); 
+		}
+
+	}else if(op == "/"){
+
+		if(flag == true){
+			typeobj->val = "Invalid operation on strings (-)"; 
+			typeobj->type = 0; 
+		}else{
+			int yint = std::stoi(y); 
+			if(yint <= x.length()){
+				typeobj->val = x.substr(0 , yint);
+			}else{
+				typeobj->val = "Integer operand must be less than the string length"; 
+				typeobj->type = 0; 
+			}
+		}
+
+	}else if(op == "<=" || op == ">=" || op == "<" || op == ">" || op == "!=" || op == "=="){
+		if(flag == false){
+			typeobj->val = "Type Error"; 
+			typeobj->type  = 0; 
+		}else{
+			typeobj->val = comp(x , y , op); 
+			typeobj->type = tok_hint; 
+		}
+	}else{
+		typeobj->val = "Invalid operation on strings (" + op + ")"; 
+		typeobj->type = 0; 
+	}
+	return typeobj; 
+}
+
 TypeObject * Function::eval(int level , std::map<std::string , Function *>ftable){
 	Environment *fb = new Environment(body , argList , ftable , level ); 
 	return fb->eval(); 
@@ -158,6 +267,22 @@ TypeObject * Environment::get_val(TypeObject *lhs , std::string op , TypeObject 
 		val = s; 
 		type = tok_hint;
 
+	}else if(lhs_type == tok_hstring || rhs_type == tok_hstring){
+		if(rhs_type == tok_hstring && lhs_type == tok_hstring){
+			return calc_string(lhs->val , op , rhs->val , true); 
+		}
+		else if(rhs_type == tok_hint && lhs_type == tok_hstring  || rhs_type == tok_hstring && lhs_type == tok_hint){
+			std::string lhs_val , rhs_val; 
+			if(rhs_type == tok_hint){
+				lhs_val = lhs->val; 
+				rhs_val = rhs->val; 
+			}else{
+				lhs_val = rhs->val; 
+				rhs_val = lhs->val; 
+			}
+
+			return calc_string(lhs_val, op , rhs_val , false); 
+		}
 	}else{
 		type = 0; 
 		val = "Type Error!"; 
@@ -259,7 +384,7 @@ TypeObject * Environment::typecheck_and_eval(AST_Tree_Node *root){
 
 TypeObject * Environment::eval(){
 	//std::cout<<body->childList[3]->node_type<<std::endl;
-
+	//print_var_table(); 
 	for(int i = 0; i<body->childList.size() ; i++){
 		AST_Tree_Node *root = body->childList[i]; 
 		//std::cout<<i<<std::endl;
@@ -284,6 +409,8 @@ TypeObject * Environment::eval(){
 				type=  tok_hfloat; 
 			}else if(root->tok->token_val == "hchar"){
 				type = tok_hchar; 
+			}else if(root->tok->token_val == "hstring"){
+				type = tok_hstring; 
 			}
 			
 			if(variable_table.find(root->childList[0]->tok->token_val) != variable_table.end()){
@@ -313,6 +440,11 @@ TypeObject * Environment::eval(){
 
 			Variable *var = variable_table.at(idnode->tok->token_val); 
 			TypeObject *eval_expr = typecheck_and_eval(expr); 
+
+			if(eval_expr->type == 0){
+				return eval_expr; 
+			}
+
 			if(eval_expr->type != var->type){
 				return new TypeObject(0 , "Type Error! variable is declared with a different type"); 
 			}

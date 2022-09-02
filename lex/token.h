@@ -11,6 +11,7 @@ enum Token {
     tok_close_p = -3, 
     tok_keyword = -4, 
     tok_operator = -5, 
+    tok_undef = -6, 
     tok_hfloat = -7, 
     tok_hchar = -8, 
     tok_hstring = -9, 
@@ -23,4 +24,5 @@ enum Token {
     tok_close_c = -15, 
     tok_coma = -16
 };
+
 #endif

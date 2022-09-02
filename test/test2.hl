@@ -1,0 +1,11 @@
+hint pow(hint x , hint y)[
+	hif y == 0[
+		ret 1; 
+	] 
+	
+	ret x * pow{x , y-1};
+]
+
+hprintln pow{2 , 6}; 
+
+

@@ -38,5 +38,14 @@ The SA also evaluates the AST. Uses a modification of depth first tree traversal
 
 **Pass the `--tree` flag while executing Hilden code to print out the generated AST**
 **Pass the `--lex` flag while executing Hilden code to print out the token list**
-**Pass the `--all` flag while executing Hilden code to print out both the token list and the AST generated**
+**Pass the `--all` flag while executing Hilden code to print out both the token list and the AST generated** 
 
+For lexing:
+
+from the root directory run the following commands
+
+lex lex/lexer.l
+g++ lex.yy.c lex/scanner.cpp main.cpp
+./a.out <a .hl file>
+
+it should print out the correct token list

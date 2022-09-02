@@ -1,0 +1,28 @@
+hstring rev(hstring s)[
+    
+    hint len(hstring s)[
+        hif s == ""[
+            ret 0; 
+        ]
+        ret 1 + len{s-1}; 
+    ]
+
+    hint n = len{s}; 
+    hprintln n; 
+
+    hstring rev2(hstring a)[
+        hif a == ""[
+            ret ""; 
+        ]
+        ret rev2{a-1} + (a/1); 
+    ]
+    
+    hstring revstr = rev2{s}; 
+    ret revstr; 
+]
+
+hstring res = rev{"abcd"}; 
+hprintln res; 
+
+
+

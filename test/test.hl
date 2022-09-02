@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 hint a = 4; 
 hfloat fl = 5.6; 
 
@@ -24,3 +25,6 @@ hfloat func1(hint a , hint b , hint c)[
 ]
 
 hint res = func1{func1{3 , 4 , 5} + 1 , 4 , 5} + 69;
+=======
+hstring hello =  'c';
+>>>>>>> llvm

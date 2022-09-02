@@ -1,0 +1,6 @@
+hif 15 {
+    hstring x = "Hello";
+    x = "15";
+} helse {
+    hstring x = 14;
+}
